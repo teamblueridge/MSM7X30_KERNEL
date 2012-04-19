@@ -1,8 +1,0 @@
-ui_print("Jmz Kernel v1.0");
-mount("MTD", "system", "/system");
-package_extract_dir("system", "/system");
-package_extract_file("boot.img", "/tmp/boot.img");
-write_raw_image("/tmp/boot.img", "boot");
-delete("/tmp/boot.img");
-ui_print("Done.  Enjoy!");
-
