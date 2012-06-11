@@ -194,7 +194,6 @@ SUBARCH := arm
 # Note: Some architectures assign CROSS_COMPILE in their arch/*/Makefile
 SUBARCH := arm
 export KBUILD_BUILDHOST := $(SUBARCH)
-ARCH		?= $(SUBARCH)
 ARCH ?= arm
 CROSS_COMPILE ?= /home/jmz/Desktop/cm9/prebuilt/linux-x86/toolchain/arm-eabi-4.4.3/bin/arm-eabi-
 
