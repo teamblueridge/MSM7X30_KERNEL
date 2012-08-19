@@ -77,15 +77,15 @@ sio_add_request(struct request_queue *q, struct request *rq)
 	list_add_tail(&rq->queuelist, &sd->fifo_list[sync]);
 }
 
-static int
+/*static int
 sio_queue_empty(struct request_queue *q)
 {
 	struct sio_data *sd = q->elevator->elevator_data;
 
-	/* Check if fifo lists are empty */
+	 Check if fifo lists are empty 
 	return list_empty(&sd->fifo_list[SYNC]) &&
 	       list_empty(&sd->fifo_list[ASYNC]);
-}
+} */
 
 static struct request *
 sio_expired_request(struct sio_data *sd, int sync)
@@ -312,7 +312,9 @@ static struct elevator_type iosched_sio = {
 		.elevator_merge_req_fn		= sio_merged_requests,
 		.elevator_dispatch_fn		= sio_dispatch_requests,
 		.elevator_add_req_fn		= sio_add_request,
-		.elevator_queue_empty_fn	= sio_queue_empty,
+/*#if LINUX_VERSION_CODE <= KERNEL_VERSION(2,6,38)
+		.elevator_queue_empty_fn sio_queue_empty,
+#endif*/
 		.elevator_former_req_fn		= sio_former_request,
 		.elevator_latter_req_fn		= sio_latter_request,
 		.elevator_init_fn		= sio_init_queue,
