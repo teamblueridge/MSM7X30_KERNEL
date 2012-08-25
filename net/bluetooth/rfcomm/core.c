@@ -61,6 +61,8 @@ static struct task_struct *rfcomm_thread;
 static DEFINE_MUTEX(rfcomm_mutex);
 #define rfcomm_lock()	mutex_lock(&rfcomm_mutex)
 #define rfcomm_unlock()	mutex_unlock(&rfcomm_mutex)
+#define __get_rpn_stop_bits(line) (((line) >> 2) & 0x1)
+#define __get_rpn_parity(line)    (((line) >> 3) & 0x7)
 
 static unsigned long rfcomm_event;
 
@@ -115,6 +117,20 @@ static void rfcomm_session_del(struct rfcomm_session *s);
 #define __get_rpn_data_bits(line) ((line) & 0x3)
 #define __get_rpn_stop_bits(line) (((line) >> 2) & 0x1)
 #define __get_rpn_parity(line)    (((line) >> 3) & 0x7)
+
+/* Check secure link requirement */
+static int hci_conn_check_secure(struct hci_conn *conn, __u8 sec_level)
+{
+	BT_DBG("conn %p", conn);
+
+	if (sec_level != BT_SECURITY_HIGH)
+		return 1; /* Accept if non-secure is required */
+
+	if (conn->sec_level == BT_SECURITY_HIGH)
+		return 1;
+
+	return 0; /* Reject not secure link */
+}
 
 static inline void rfcomm_schedule(void)
 {
@@ -228,6 +244,7 @@ static int rfcomm_l2sock_create(struct socket **sock)
 	}
 	return err;
 }
+
 
 static inline int rfcomm_check_security(struct rfcomm_dlc *d)
 {
