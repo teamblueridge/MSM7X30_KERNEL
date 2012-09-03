@@ -1363,17 +1363,17 @@ static int htc_rpc_charger_switch(unsigned enable)
 	if (enable == ENABLE_LIMIT_CHARGER) {
 		#if (!defined(CONFIG_MACH_PRIMOU))
 			ret = tps_set_charger_ctrl(ENABLE_LIMITED_CHG);
-		#else
-			phone_call_flag = PHONE_CALL_IN;
-			BATT_LOG("phone_call_flag:%d\n",phone_call_flag);
+		//#else
+		//	phone_call_flag = PHONE_CALL_IN;
+		//	BATT_LOG("phone_call_flag:%d\n",phone_call_flag);
 		#endif
 	}
 	else if (enable == DISABLE_LIMIT_CHARGER) {
 		#if (!defined(CONFIG_MACH_PRIMOU))
 			ret = tps_set_charger_ctrl(CLEAR_LIMITED_CHG);
-		#else
-			phone_call_flag = PHONE_CALL_STOP;
-			BATT_LOG("phone_call_flag:%d\n",phone_call_flag);
+		//#else
+		//	phone_call_flag = PHONE_CALL_STOP;
+		//	BATT_LOG("phone_call_flag:%d\n",phone_call_flag);
 		#endif
 	}
 	else {
@@ -2158,12 +2158,12 @@ static int htc_batt_suspend(struct device *dev)
 
 	/* If we are on battery, reduce our update rate until
 	 * we next resume.*/
-	if (phone_call_flag == PHONE_CALL_IN) {
-	req.data = cpu_to_be32(phone_call_flag);
-	ret = msm_rpc_call(endpoint,
-			HTC_PROCEDURE_CHARGER_SWITCH,
-			&req, sizeof(req), 5 * HZ);
-	BATT_LOG("%s : Phone call in:%d\n", __func__, phone_call_flag);
+	//if (phone_call_flag == PHONE_CALL_IN) {
+	//req.data = cpu_to_be32(phone_call_flag);
+	//ret = msm_rpc_call(endpoint,
+	//		HTC_PROCEDURE_CHARGER_SWITCH,
+	//		&req, sizeof(req), 5 * HZ);
+	//BATT_LOG("%s : Phone call in:%d\n", __func__, phone_call_flag);
 	if (ret < 0)
 		BATT_ERR("%s: msm_rpc_call failed (%d)!", __func__, ret);
 	}
@@ -2178,12 +2178,12 @@ static void htc_batt_resume(struct device *dev)
 		uint32_t data;
 	} req;
 
-	if (phone_call_flag == PHONE_CALL_IN) {
-	req.data = cpu_to_be32(PHONE_CALL_STOP);
-	ret = msm_rpc_call(endpoint,
-			HTC_PROCEDURE_CHARGER_SWITCH,
-			&req, sizeof(req), 5 * HZ);
-	BATT_LOG("%s : Phone call stop:%d\n", __func__, phone_call_flag);
+	//if (phone_call_flag == PHONE_CALL_IN) {
+	//req.data = cpu_to_be32(PHONE_CALL_STOP);
+	//ret = msm_rpc_call(endpoint,
+	//		HTC_PROCEDURE_CHARGER_SWITCH,
+	//		&req, sizeof(req), 5 * HZ);
+	//BATT_LOG("%s : Phone call stop:%d\n", __func__, phone_call_flag);
 	if (ret < 0)
 		BATT_ERR("%s: msm_rpc_call failed (%d)!", __func__, ret);
 	}
