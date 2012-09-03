@@ -146,8 +146,6 @@
 /* Color bar pattern selection */
 #define S5K4E5YX_COLOR_BAR_PATTERN_SEL_REG 0x0601
 
-#define REG_LINE_LENGTH_MSB 0x0340
-#define REG_LINE_LENGTH_LSB 0x0341
 #define REG_LINE_LENGTH_PCK_MSB 0x0342
 #define REG_LINE_LENGTH_PCK_LSB 0x0343
 #define REG_ANALOGUE_GAIN_CODE_GLOBAL_MSB 0x0204
@@ -552,14 +550,13 @@ static int32_t s5k4e5yx_write_exp_gain
 	int32_t rc = 0;
 
 	uint16_t max_legal_gain = 0x0200;
+	uint32_t ll_ratio; /* Q10 */
 	uint32_t ll_pck, fl_lines;
 	uint16_t offset = 8; /* 4; */     /* kipper */
 	uint32_t gain_msb, gain_lsb;
 	uint32_t intg_t_msb, intg_t_lsb;
 	uint32_t ll_pck_msb, ll_pck_lsb;
-	uint32_t fl_l_msb, fl_l_lsb;
-	uint32_t max_line = 0xFFFF - offset;
-	struct s5k4e5yx_i2c_reg_conf tbl[5];
+	struct s5k4e5yx_i2c_reg_conf tbl[3];
 
 	CDBG("Line:%d s5k4e5yx_write_exp_gain \n", __LINE__);
 
@@ -607,18 +604,18 @@ static int32_t s5k4e5yx_write_exp_gain
 	if (gain > max_legal_gain)
 		gain = max_legal_gain;
 
-	if (line > max_line)
-		line = max_line;
-
-	/* Q10: 0x400*/
-	if (line * 0x400 > (fl_lines - offset) * s5k4e5yx_ctrl->fps_divider)
-		fl_lines = line + offset;
-	else
-		fl_lines = (fl_lines * s5k4e5yx_ctrl->fps_divider) / 0x400;
+	/* in Q10 */
+	line = (line * 0x400);/* s5k4e5yx_ctrl->fps_divider); */
 
 	CDBG("s5k4e5yx_ctrl->fps_divider = %d\n", s5k4e5yx_ctrl->fps_divider);
 	CDBG("fl_lines = %d\n", fl_lines);
 	CDBG("line = %d\n", line);
+
+	if ((fl_lines - offset) < (line / 0x400))
+		ll_ratio = (line / (fl_lines - offset));
+	else
+		ll_ratio = 0x400;
+	 CDBG("ll_ratio = %d\n", ll_ratio);
 
 	/* update gain registers */
 	CDBG("gain = %d\n", gain);
@@ -630,37 +627,32 @@ static int32_t s5k4e5yx_write_exp_gain
 	tbl[1].bdata = gain_msb;
 	tbl[2].waddr = REG_ANALOGUE_GAIN_CODE_GLOBAL_LSB;
 	tbl[2].bdata = gain_lsb;
-	rc = s5k4e5yx_i2c_write_table(&tbl[0], ARRAY_SIZE(tbl)-2);
+	rc = s5k4e5yx_i2c_write_table(&tbl[0], ARRAY_SIZE(tbl));
 	if (rc < 0)
 		goto write_gain_done;
 
-	CDBG("ll_pck = %d\n", ll_pck);
-	ll_pck_msb = (ll_pck & 0xFF00) >> 8;
-	ll_pck_lsb = ll_pck & 0x00FF;
+	ll_pck = ll_pck * ll_ratio / 0x400 * s5k4e5yx_ctrl->fps_divider;
+	CDBG("ll_pck/0x400 = %d\n", ll_pck / 0x400);
+	ll_pck_msb = ((ll_pck / 0x400) & 0xFF00) >> 8;
+	ll_pck_lsb = (ll_pck / 0x400) & 0x00FF;
 	tbl[0].waddr = REG_LINE_LENGTH_PCK_MSB;
 	tbl[0].bdata = ll_pck_msb;
 	tbl[1].waddr = REG_LINE_LENGTH_PCK_LSB;
 	tbl[1].bdata = ll_pck_lsb;
-	rc = s5k4e5yx_i2c_write_table(&tbl[0], ARRAY_SIZE(tbl)-3);
+	rc = s5k4e5yx_i2c_write_table(&tbl[0], ARRAY_SIZE(tbl)-1);
 	if (rc < 0)
 		goto write_gain_done;
 
+	line = line / ll_ratio;
 	CDBG("line = %d\n", line);
-	CDBG("fl_lines = %d\n", fl_lines);
-	fl_l_msb = (fl_lines & 0xFF00) >> 8;
-	fl_l_lsb = (fl_lines & 0x00FF);
 	intg_t_msb = (line & 0xFF00) >> 8;
 	intg_t_lsb = (line & 0x00FF);
 	tbl[0].waddr = REG_COARSE_INTEGRATION_TIME_MSB;
 	tbl[0].bdata = intg_t_msb;
 	tbl[1].waddr = REG_COARSE_INTEGRATION_TIME_LSB;
 	tbl[1].bdata = intg_t_lsb;
-	tbl[2].waddr = REG_LINE_LENGTH_MSB;
-	tbl[2].bdata = fl_l_msb;
-	tbl[3].waddr = REG_LINE_LENGTH_LSB;
-	tbl[3].bdata = fl_l_lsb;
-	tbl[4].waddr = S5K4E5YX_REG_GROUP_PARAMETER_HOLD;
-	tbl[4].bdata = S5K4E5YX_GROUP_PARAMETER_UNHOLD;
+	tbl[2].waddr = S5K4E5YX_REG_GROUP_PARAMETER_HOLD;
+	tbl[2].bdata = S5K4E5YX_GROUP_PARAMETER_UNHOLD;
 	rc = s5k4e5yx_i2c_write_table(&tbl[0], ARRAY_SIZE(tbl));
 
 write_gain_done:
@@ -716,6 +708,7 @@ static void s5k4e5yx_ADLC_conrtol(int rt)
 
 static void s5k4e5yx_stream_on(void)
 {
+	msleep(20);
 	s5k4e5yx_i2c_write_b(s5k4e5yx_client->addr, S5K4E5YX_REG_MODE_SELECT, S5K4E5YX_MODE_SELECT_STREAM);
 	s5k4e5yx_set_internal_regulator(S5K4E5YX_MODE_INT_RGL_OFF);
 }
@@ -724,6 +717,7 @@ static void s5k4e5yx_stream_off(void)
 {
 	s5k4e5yx_i2c_write_b(s5k4e5yx_client->addr, S5K4E5YX_REG_MODE_SELECT, S5K4E5YX_MODE_SELECT_SW_STANDBY);
 	s5k4e5yx_set_internal_regulator(S5K4E5YX_MODE_INT_RGL_ON);
+	msleep(100);
 }
 
 #ifdef CONFIG_RAWCHIP
@@ -1070,7 +1064,7 @@ static int32_t s5k4e5yx_setting(int rt)
 			s5k4e5yx_csi_params.lane_cnt = 2;
 			s5k4e5yx_csi_params.lane_assign = 0xe4;
 			s5k4e5yx_csi_params.dpcm_scheme = 0;
-			s5k4e5yx_csi_params.settle_cnt = 20;
+			s5k4e5yx_csi_params.settle_cnt = 35;
 			s5k4e5yx_csi_params.hs_impedence = 0x0F;
 			s5k4e5yx_csi_params.mipi_driving_strength = 0;
 			rc = msm_camio_csi_config(&s5k4e5yx_csi_params);
@@ -1955,6 +1949,14 @@ uint8_t s5k4e5yx_preview_skip_frame(void)
 	return 0;
 }
 
+static int s5k4e5yx_deinit(void)
+{
+	pr_info ("[CAM] s5k4e5yx_deinit\n");
+
+	return s5k4e5yx_common_deinit (s5k4e5yx_pdev->dev.platform_data);
+}
+
+
 int s5k4e5yx_sensor_config(void __user *argp)
 {
   struct sensor_cfg_data cdata;
@@ -2085,7 +2087,10 @@ int s5k4e5yx_sensor_config(void __user *argp)
 			rc = -EFAULT;
 		}
 		break;
-
+  case CFG_DEINIT:
+	rc = s5k4e5yx_deinit ();
+	break;
+  
   default:
     rc = -EFAULT;
     break;
