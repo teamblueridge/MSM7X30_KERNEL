@@ -182,7 +182,7 @@ $(obj)/vmlinux.lds: $(obj)/vmlinux.lds.in arch/arm/boot/Makefile $(KCONFIG_CONFI
 # For __aeabi_llsl
 ashldi3 = $(obj)/ashldi3.o
 $(obj)/ashldi3.S: $(srctree)/arch/$(SRCARCH)/lib/ashldi3.S FORCE
-    $(call cmd,shipped)
+	$(call cmd,shipped)
 
 $(obj)/vmlinux: $(obj)/vmlinux.lds $(obj)/$(HEAD) $(obj)/piggy.$(suffix_y).o \
-    $(addprefix $(obj)/, $(OBJS)) $(lib1funcs) $(ashldi3) FORCE
+	$(addprefix $(obj)/, $(OBJS)) $(lib1funcs) $(ashldi3) FORCE
