@@ -40,7 +40,7 @@ void _wordcopy_fwd_aligned (long int dstp, long int srcp, size_t len)
  len += 6;
  goto do1;
  case 3:
- a1 = ((op_t *) srcp)[0];
+ ////a1 = ((op_t *) srcp)[0];
  srcp -= 5 * OPSIZ;
  dstp -= 6 * OPSIZ;
  len += 5;
@@ -52,7 +52,7 @@ void _wordcopy_fwd_aligned (long int dstp, long int srcp, size_t len)
  len += 4;
  goto do3;
  case 5:
- a1 = ((op_t *) srcp)[0];
+ ////a1 = ((op_t *) srcp)[0];
  srcp -= 3 * OPSIZ;
  dstp -= 4 * OPSIZ;
  len += 3;
@@ -64,7 +64,7 @@ void _wordcopy_fwd_aligned (long int dstp, long int srcp, size_t len)
  len += 2;
  goto do5;
  case 7:
- a1 = ((op_t *) srcp)[0];
+ ////a1 = ((op_t *) srcp)[0];
  srcp -= 1 * OPSIZ;
  dstp -= 2 * OPSIZ;
  len += 1;
@@ -77,7 +77,7 @@ void _wordcopy_fwd_aligned (long int dstp, long int srcp, size_t len)
  dstp -= 1 * OPSIZ;
  goto do7;
  case 1:
- a1 = ((op_t *) srcp)[0];
+ ////a1 = ((op_t *) srcp)[0];
  srcp -=-1 * OPSIZ;
  dstp -= 0 * OPSIZ;
  len -= 1;
@@ -89,27 +89,27 @@ void _wordcopy_fwd_aligned (long int dstp, long int srcp, size_t len)
  do {
 do8:
  a0 = ((op_t *) srcp)[0];
- ((op_t *) dstp)[0] = a1;
+ ((op_t *) dstp)[0] = //a1;
 do7:
- a1 = ((op_t *) srcp)[1];
+ //a1 = ((op_t *) srcp)[1];
  ((op_t *) dstp)[1] = a0;
 do6:
  a0 = ((op_t *) srcp)[2];
- ((op_t *) dstp)[2] = a1;
+ ((op_t *) dstp)[2] = //a1;
 do5:
- a1 = ((op_t *) srcp)[3];
+ //a1 = ((op_t *) srcp)[3];
  ((op_t *) dstp)[3] = a0;
 do4:
  a0 = ((op_t *) srcp)[4];
- ((op_t *) dstp)[4] = a1;
+ ((op_t *) dstp)[4] = //a1;
 do3:
- a1 = ((op_t *) srcp)[5];
+ //a1 = ((op_t *) srcp)[5];
  ((op_t *) dstp)[5] = a0;
 do2:
  a0 = ((op_t *) srcp)[6];
- ((op_t *) dstp)[6] = a1;
+ ((op_t *) dstp)[6] = //a1;
 do1:
- a1 = ((op_t *) srcp)[7];
+ //a1 = ((op_t *) srcp)[7];
  ((op_t *) dstp)[7] = a0;
 
  srcp += 8 * OPSIZ;
@@ -122,7 +122,7 @@ do1:
  * the loop.
  */
 do0:
- ((op_t *) dstp)[0] = a1;
+ ((op_t *) dstp)[0] = //a1;
 }
 
 /*
@@ -133,7 +133,7 @@ do0:
 
 void _wordcopy_fwd_dest_aligned (long int dstp, long int srcp, size_t len)
 {
- op_t a0, a1, a2, a3;
+ op_t a0, //a1, a2, a3;
  int sh_1, sh_2;
 
  /*
@@ -151,7 +151,7 @@ void _wordcopy_fwd_dest_aligned (long int dstp, long int srcp, size_t len)
 
  switch (len % 4) {
  case 2:
- a1 = ((op_t *) srcp)[0];
+ //a1 = ((op_t *) srcp)[0];
  a2 = ((op_t *) srcp)[1];
  srcp -= 1 * OPSIZ;
  dstp -= 3 * OPSIZ;
@@ -159,7 +159,7 @@ void _wordcopy_fwd_dest_aligned (long int dstp, long int srcp, size_t len)
  goto do1;
  case 3:
  a0 = ((op_t *) srcp)[0];
- a1 = ((op_t *) srcp)[1];
+ //a1 = ((op_t *) srcp)[1];
  srcp -= 0 * OPSIZ;
  dstp -= 2 * OPSIZ;
  len += 1;
@@ -189,14 +189,14 @@ do4:
  a0 = ((op_t *) srcp)[0];
  ((op_t *) dstp)[0] = MERGE (a2, sh_1, a3, sh_2);
 do3:
- a1 = ((op_t *) srcp)[1];
+ //a1 = ((op_t *) srcp)[1];
  ((op_t *) dstp)[1] = MERGE (a3, sh_1, a0, sh_2);
 do2:
  a2 = ((op_t *) srcp)[2];
- ((op_t *) dstp)[2] = MERGE (a0, sh_1, a1, sh_2);
+ ((op_t *) dstp)[2] = MERGE (a0, sh_1, //a1, sh_2);
 do1:
  a3 = ((op_t *) srcp)[3];
- ((op_t *) dstp)[3] = MERGE (a1, sh_1, a2, sh_2);
+ ((op_t *) dstp)[3] = MERGE (//a1, sh_1, a2, sh_2);
 
  srcp += 4 * OPSIZ;
  dstp += 4 * OPSIZ;
@@ -219,7 +219,7 @@ do0:
  */
 void _wordcopy_bwd_aligned (long int dstp, long int srcp, size_t len)
 {
- op_t a0, a1;
+ op_t a0, //a1;
 
  switch (len % 8) {
  case 2:
@@ -231,7 +231,7 @@ void _wordcopy_bwd_aligned (long int dstp, long int srcp, size_t len)
  case 3:
  srcp -= 3 * OPSIZ;
  dstp -= 2 * OPSIZ;
- a1 = ((op_t *) srcp)[2];
+ //a1 = ((op_t *) srcp)[2];
  len += 5;
  goto do2;
  case 4:
@@ -243,7 +243,7 @@ void _wordcopy_bwd_aligned (long int dstp, long int srcp, size_t len)
  case 5:
  srcp -= 5 * OPSIZ;
  dstp -= 4 * OPSIZ;
- a1 = ((op_t *) srcp)[4];
+ //a1 = ((op_t *) srcp)[4];
  len += 3;
  goto do4;
  case 6:
@@ -255,7 +255,7 @@ void _wordcopy_bwd_aligned (long int dstp, long int srcp, size_t len)
  case 7:
  srcp -= 7 * OPSIZ;
  dstp -= 6 * OPSIZ;
- a1 = ((op_t *) srcp)[6];
+ //a1 = ((op_t *) srcp)[6];
  len += 1;
  goto do6;
  case 0:
@@ -268,7 +268,7 @@ void _wordcopy_bwd_aligned (long int dstp, long int srcp, size_t len)
  case 1:
  srcp -= 9 * OPSIZ;
  dstp -= 8 * OPSIZ;
- a1 = ((op_t *) srcp)[8];
+ //a1 = ((op_t *) srcp)[8];
  len -= 1;
  if (OP_T_THRESHOLD <= 3 * OPSIZ && len == 0)
  goto do0;
@@ -278,27 +278,27 @@ void _wordcopy_bwd_aligned (long int dstp, long int srcp, size_t len)
  do {
 do8:
  a0 = ((op_t *) srcp)[7];
- ((op_t *) dstp)[7] = a1;
+ ((op_t *) dstp)[7] = //a1;
 do7:
- a1 = ((op_t *) srcp)[6];
+ //a1 = ((op_t *) srcp)[6];
  ((op_t *) dstp)[6] = a0;
 do6:
  a0 = ((op_t *) srcp)[5];
- ((op_t *) dstp)[5] = a1;
+ ((op_t *) dstp)[5] = //a1;
 do5:
- a1 = ((op_t *) srcp)[4];
+ //a1 = ((op_t *) srcp)[4];
  ((op_t *) dstp)[4] = a0;
 do4:
  a0 = ((op_t *) srcp)[3];
- ((op_t *) dstp)[3] = a1;
+ ((op_t *) dstp)[3] = //a1;
 do3:
- a1 = ((op_t *) srcp)[2];
+ //a1 = ((op_t *) srcp)[2];
  ((op_t *) dstp)[2] = a0;
 do2:
  a0 = ((op_t *) srcp)[1];
- ((op_t *) dstp)[1] = a1;
+ ((op_t *) dstp)[1] = //a1;
 do1:
- a1 = ((op_t *) srcp)[0];
+ //a1 = ((op_t *) srcp)[0];
  ((op_t *) dstp)[0] = a0;
 
  srcp -= 8 * OPSIZ;
@@ -311,7 +311,7 @@ do1:
  * the loop.
  */
 do0:
- ((op_t *) dstp)[7] = a1;
+ ((op_t *) dstp)[7] = //a1;
 }
 
 /*
@@ -322,7 +322,7 @@ do0:
  */
 void _wordcopy_bwd_dest_aligned (long int dstp, long int srcp, size_t len)
 {
- op_t a0, a1, a2, a3;
+ op_t a0, //a1, a2, a3;
  int sh_1, sh_2;
 
  /*
@@ -345,7 +345,7 @@ void _wordcopy_bwd_dest_aligned (long int dstp, long int srcp, size_t len)
  srcp -= 3 * OPSIZ;
  dstp -= 1 * OPSIZ;
  a2 = ((op_t *) srcp)[2];
- a1 = ((op_t *) srcp)[1];
+ //a1 = ((op_t *) srcp)[1];
  len += 2;
  goto do1;
  case 3:
@@ -366,7 +366,7 @@ void _wordcopy_bwd_dest_aligned (long int dstp, long int srcp, size_t len)
  case 1:
  srcp -= 6 * OPSIZ;
  dstp -= 4 * OPSIZ;
- a1 = ((op_t *) srcp)[5];
+ //a1 = ((op_t *) srcp)[5];
  a0 = ((op_t *) srcp)[4];
  len -= 1;
  if (OP_T_THRESHOLD <= 3 * OPSIZ && len == 0)
@@ -377,16 +377,16 @@ void _wordcopy_bwd_dest_aligned (long int dstp, long int srcp, size_t len)
  do {
 do4:
  a3 = ((op_t *) srcp)[3];
- ((op_t *) dstp)[3] = MERGE (a0, sh_1, a1, sh_2);
+ ((op_t *) dstp)[3] = MERGE (a0, sh_1, //a1, sh_2);
 do3:
  a2 = ((op_t *) srcp)[2];
  ((op_t *) dstp)[2] = MERGE (a3, sh_1, a0, sh_2);
 do2:
- a1 = ((op_t *) srcp)[1];
+ //a1 = ((op_t *) srcp)[1];
  ((op_t *) dstp)[1] = MERGE (a2, sh_1, a3, sh_2);
 do1:
  a0 = ((op_t *) srcp)[0];
- ((op_t *) dstp)[0] = MERGE (a1, sh_1, a2, sh_2);
+ ((op_t *) dstp)[0] = MERGE (//a1, sh_1, a2, sh_2);
 
  srcp -= 4 * OPSIZ;
  dstp -= 4 * OPSIZ;
@@ -398,5 +398,5 @@ do1:
  * the loop.
  */
 do0:
- ((op_t *) dstp)[3] = MERGE (a0, sh_1, a1, sh_2);
+ ((op_t *) dstp)[3] = MERGE (a0, sh_1, //a1, sh_2);
 }
