@@ -30,7 +30,7 @@
  */
 void _wordcopy_fwd_aligned (long int dstp, long int srcp, size_t len)
 {
- op_t a0, a1;
+ op_t a0;
 
  switch (len % 8) {
  case 2:
