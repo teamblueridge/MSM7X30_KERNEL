@@ -1033,6 +1033,8 @@ int frame_thread(void* dummy)
 		printk("frmae=%d\n",i);
 		msleep(300);
 	}
+        //attempt at fixing a build error
+        return 0;
 }
 
 void run_thread(void)
