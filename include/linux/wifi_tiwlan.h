@@ -15,8 +15,6 @@
 #ifndef _LINUX_WIFI_TIWLAN_H_
 #define _LINUX_WIFI_TIWLAN_H_
 
-#include <linux/wlan_plat.h>
-
 #define WMPA_NUMBER_OF_SECTIONS	3
 #define WMPA_NUMBER_OF_BUFFERS	160
 #define WMPA_SECTION_HEADER	24
