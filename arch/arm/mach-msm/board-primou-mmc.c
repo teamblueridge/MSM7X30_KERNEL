@@ -23,6 +23,7 @@
 #include <linux/gpio.h>
 #include <linux/mfd/pmic8058.h>
 #include <mach/htc_fast_clk.h>
+#include <linux/gpio.h>
 #include <linux/io.h>
 
 #include <mach/vreg.h>
