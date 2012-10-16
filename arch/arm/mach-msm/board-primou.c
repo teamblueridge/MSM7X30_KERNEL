@@ -4622,21 +4622,6 @@ struct platform_device msm_device_sdio_al = {
 };
 #endif /* CONFIG_MSM_SDIO_AL */
 
-static struct resource ram_console_resources[] = {
-	{
-		.start  = MSM_RAM_CONSOLE_BASE,
-		.end    = MSM_RAM_CONSOLE_BASE + MSM_RAM_CONSOLE_SIZE - 1,
-		.flags  = IORESOURCE_MEM,
-	},
-};
-
-static struct platform_device ram_console_device = {
-	.name           = "ram_console",
-	.id             = -1,
-	.num_resources  = ARRAY_SIZE(ram_console_resources),
-	.resource       = ram_console_resources,
-};
-
 /* HEADSET DRIVER BEGIN */
 
 #define HEADSET_DETECT		PRIMOU_GPIO_35MM_HEADSET_DET
@@ -4907,7 +4892,6 @@ static struct platform_device cable_detect_device = {
 };
 
 static struct platform_device *devices[] __initdata = {
-        &ram_console_device,
 #if defined(CONFIG_SERIAL_MSM) || defined(CONFIG_MSM_SERIAL_DEBUGGER)
         &msm_device_uart2,
 #endif
@@ -5014,7 +4998,6 @@ static struct platform_device *devices[] __initdata = {
 };
 
 static struct platform_device *devices_CH[] __initdata = {
-	&ram_console_device,
 #if defined(CONFIG_SERIAL_MSM) || defined(CONFIG_MSM_SERIAL_DEBUGGER)
 	&msm_device_uart2,
 #endif
