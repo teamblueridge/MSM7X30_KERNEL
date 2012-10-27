@@ -1,4 +1,5 @@
 #!/bin/bash
+project=MSM7X30_KERNEL
 echo "WELCOME TO TBR GERRIT. Please have an account created"
 if [ -f ~/.ssh/tbr_username ]
   then
@@ -11,8 +12,6 @@ if [ -f ~/.ssh/tbr_username ]
 fi
 un=`cat ~/.ssh/tbr_username`
 echo "Your username is $un to reconfigure, run this command (w/o quotes) 'rm -rf ~/.ssh/tbr_username'"
-echo -n "What is the project name: "
-read projectname
 echo -n "What branch are you pushing to: "
 read branch
-git push "ssh://$un@gerrit.teamblueridge.com:29418/$projectname" "HEAD:refs/for/$branch"
+git push "ssh://$un@gerrit.teamblueridge.com:29418/$project" "HEAD:refs/for/$branch"
