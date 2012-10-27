@@ -1572,10 +1572,6 @@ static uint32_t rawchip_on_gpio_table[] = {
 	GPIO_CFG(PRIMOC_GPIO_RAW_INTR0, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), /* RAW CHIP INT0 */
 	GPIO_CFG(PRIMOC_GPIO_RAW_INTR1, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), /* RAW CHIP INT1 */
 	GPIO_CFG(PRIMOC_GPIO_MCAM_SPI_CS, 2, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_4MA), /* MCLK */
-#if 0
-	GPIO_CFG(PRIMOC_GPIO_CAM1_VCM_PWD, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-	GPIO_CFG(PRIMOC_GPIO_CAM1_PWD, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-#endif
 	GPIO_CFG(PRIMOC_GPIO_CAM_MCLK, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_16MA), /* MCLK */
 	GPIO_CFG(PRIMOC_GPIO_CAM_I2C_SCL, 2, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA), /* I2C SCL*/
 	GPIO_CFG(PRIMOC_GPIO_CAM_I2C_SDA, 2, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA), /* I2C SDA*/
@@ -1712,133 +1708,6 @@ static int __init aux_pcm_gpio_init(void)
 	return rc;
 }
 
-#if 0
-static struct msm_gpio mi2s_clk_gpios[] = {
-	{ GPIO_CFG(145, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-	    "MI2S_SCLK"},
-	{ GPIO_CFG(144, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-	    "MI2S_WS"},
-	{ GPIO_CFG(120, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-	    "MI2S_MCLK_A"},
-};
-
-static struct msm_gpio mi2s_rx_data_lines_gpios[] = {
-	{ GPIO_CFG(121, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-	    "MI2S_DATA_SD0_A"},
-	{ GPIO_CFG(122, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-	    "MI2S_DATA_SD1_A"},
-	{ GPIO_CFG(123, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-	    "MI2S_DATA_SD2_A"},
-	{ GPIO_CFG(146, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-	    "MI2S_DATA_SD3"},
-};
-
-static struct msm_gpio mi2s_tx_data_lines_gpios[] = {
-	{ GPIO_CFG(146, 1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-	    "MI2S_DATA_SD3"},
-};
-
-int primoc_mi2s_config_clk_gpio(void)
-{
-	int rc = 0;
-
-	rc = msm_gpios_request_enable(mi2s_clk_gpios,
-			ARRAY_SIZE(mi2s_clk_gpios));
-	if (rc) {
-		pr_err("%s: enable mi2s clk gpios  failed\n",
-					__func__);
-		return rc;
-	}
-	return 0;
-}
-
-int  primoc_mi2s_unconfig_data_gpio(u32 direction, u8 sd_line_mask)
-{
-	int i, rc = 0;
-	sd_line_mask &= MI2S_SD_LINE_MASK;
-
-	switch (direction) {
-	case DIR_TX:
-		msm_gpios_disable_free(mi2s_tx_data_lines_gpios, 1);
-		break;
-	case DIR_RX:
-		i = 0;
-		while (sd_line_mask) {
-			if (sd_line_mask & 0x1)
-				msm_gpios_disable_free(
-					mi2s_rx_data_lines_gpios + i , 1);
-			sd_line_mask = sd_line_mask >> 1;
-			i++;
-		}
-		break;
-	default:
-		pr_err("%s: Invaild direction  direction = %u\n",
-						__func__, direction);
-		rc = -EINVAL;
-		break;
-	}
-	return rc;
-}
-
-int primoc_mi2s_config_data_gpio(u32 direction, u8 sd_line_mask)
-{
-	int i , rc = 0;
-	u8 sd_config_done_mask = 0;
-
-	sd_line_mask &= MI2S_SD_LINE_MASK;
-
-	switch (direction) {
-	case DIR_TX:
-		if ((sd_line_mask & MI2S_SD_0) || (sd_line_mask & MI2S_SD_1) ||
-		   (sd_line_mask & MI2S_SD_2) || !(sd_line_mask & MI2S_SD_3)) {
-			pr_err("%s: can not use SD0 or SD1 or SD2 for TX"
-				".only can use SD3. sd_line_mask = 0x%x\n",
-				__func__ , sd_line_mask);
-			rc = -EINVAL;
-		} else {
-			rc = msm_gpios_request_enable(mi2s_tx_data_lines_gpios,
-							 1);
-			if (rc)
-				pr_err("%s: enable mi2s gpios for TX failed\n",
-					   __func__);
-		}
-		break;
-	case DIR_RX:
-		i = 0;
-		while (sd_line_mask && (rc == 0)) {
-			if (sd_line_mask & 0x1) {
-				rc = msm_gpios_request_enable(
-					mi2s_rx_data_lines_gpios + i , 1);
-				if (rc) {
-					pr_err("%s: enable mi2s gpios for"
-					 "RX failed.  SD line = %s\n",
-					 __func__,
-					 (mi2s_rx_data_lines_gpios + i)->label);
-					primoc_mi2s_unconfig_data_gpio(DIR_RX,
-						sd_config_done_mask);
-				} else
-					sd_config_done_mask |= (1 << i);
-			}
-			sd_line_mask = sd_line_mask >> 1;
-			i++;
-		}
-		break;
-	default:
-		pr_err("%s: Invaild direction  direction = %u\n",
-			__func__, direction);
-		rc = -EINVAL;
-		break;
-	}
-	return rc;
-}
-
-int primoc_mi2s_unconfig_clk_gpio(void)
-{
-	msm_gpios_disable_free(mi2s_clk_gpios, ARRAY_SIZE(mi2s_clk_gpios));
-	return 0;
-}
-#endif
-
 #endif /* CONFIG_MSM7KV2_AUDIO */
 
 static int __init buses_init(void)
@@ -1893,14 +1762,6 @@ static unsigned int msm_timpani_setup_power(void)
 	rc = config_timpani_reset();
 	if (rc < 0)
 		goto out;
-#if 0
-	rc = vreg_enable(vreg_marimba_1);
-	if (rc) {
-		printk(KERN_ERR "%s: vreg_enable() = %d\n",
-					__func__, rc);
-		goto out;
-	}
-#endif
 	rc = vreg_enable(vreg_marimba_2);
 	if (rc) {
 		printk(KERN_ERR "%s: vreg_enable() = %d\n",
@@ -1918,41 +1779,8 @@ static unsigned int msm_timpani_setup_power(void)
 		vreg_disable(vreg_marimba_2);
 	} else
 		goto out;
-
-#if 0
-fail_disable_vreg_marimba_1:
-	vreg_disable(vreg_marimba_1);
-#endif
 out:
 	return rc;
-};
-
-static void msm_timpani_shutdown_power(void)
-{
-#if 0
-	int rc;
-
-	rc = vreg_disable(vreg_marimba_1);
-	if (rc) {
-		printk(KERN_ERR "%s: return val: %d\n",
-					__func__, rc);
-	}
-	rc = vreg_disable(vreg_marimba_2);
-	if (rc) {
-		printk(KERN_ERR "%s: return val: %d\n",
-					__func__, rc);
-	}
-
-	rc = gpio_direction_output(TIMPANI_RESET_GPIO, 0);
-	if (rc < 0) {
-		printk(KERN_ERR
-			"%s: gpio_direction_output failed (%d)\n",
-				__func__, rc);
-	}
-
-	msm_gpios_free(timpani_reset_gpio_cfg,
-				   ARRAY_SIZE(timpani_reset_gpio_cfg));
-#endif
 };
 
 static struct msm_gpio marimba_svlte_config_clock[] = {
@@ -1978,14 +1806,6 @@ static unsigned int msm_marimba_gpio_config_svlte(int gpio_cfg_marimba)
 static unsigned int msm_marimba_setup_power(void)
 {
 	int rc;
-#if 0
-	rc = vreg_enable(vreg_marimba_1);
-	if (rc) {
-		printk(KERN_ERR "%s: vreg_enable() = %d \n",
-					__func__, rc);
-		goto out;
-	}
-#endif
 	rc = vreg_enable(vreg_marimba_2);
 	if (rc) {
 		printk(KERN_ERR "%s: vreg_enable() = %d \n",
@@ -2015,24 +1835,6 @@ static unsigned int msm_marimba_setup_power(void)
 
 out:
 	return rc;
-};
-
-static void msm_marimba_shutdown_power(void)
-{
-#if 0
-	int rc;
-
-	rc = vreg_disable(vreg_marimba_1);
-	if (rc) {
-		printk(KERN_ERR "%s: return val: %d\n",
-					__func__, rc);
-	}
-	rc = vreg_disable(vreg_marimba_2);
-	if (rc) {
-		printk(KERN_ERR "%s: return val: %d \n",
-					__func__, rc);
-	}
-#endif
 };
 
 static int bahama_present(void)
@@ -2497,14 +2299,6 @@ static struct marimba_platform_data marimba_pdata = {
 
 static void __init primoc_init_marimba(void)
 {
-#if 0
-	vreg_marimba_1 = vreg_get(NULL, "s2");
-	if (IS_ERR(vreg_marimba_1)) {
-		printk(KERN_ERR "%s: vreg get failed (%ld)\n",
-			__func__, PTR_ERR(vreg_marimba_1));
-		return;
-	}
-#endif
 	vreg_marimba_2 = vreg_get(NULL, "gp16");
 	if (IS_ERR(vreg_marimba_2)) {
 		printk(KERN_ERR "%s: vreg get failed (%ld)\n",
@@ -3031,39 +2825,10 @@ static struct spi_board_info spi_rawchip_board_info[] __initdata = {
 };
 #endif
 
-#if 0
-static uint32_t qsd_spi_gpio_on_table[] = {
-	PCOM_GPIO_CFG(45, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_CFG_4MA),
-	PCOM_GPIO_CFG(47, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_CFG_4MA),
-	PCOM_GPIO_CFG(48, 1, GPIO_INPUT, GPIO_PULL_DOWN, GPIO_CFG_4MA),
-	PCOM_GPIO_CFG(89, 2, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_CFG_4MA)
-};
-
-static uint32_t qsd_spi_gpio_off_table[] = {
-	PCOM_GPIO_CFG(45, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_CFG_4MA),
-	PCOM_GPIO_CFG(47, 1, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_CFG_4MA),
-	PCOM_GPIO_CFG(48, 1, GPIO_INPUT, GPIO_PULL_DOWN, GPIO_CFG_4MA),
-	PCOM_GPIO_CFG(89, 2, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_CFG_4MA)
-};
-#endif
-
 static int msm_qsd_spi_gpio_config(void)
 {
-#if 0
-	config_gpio_table(qsd_spi_gpio_on_table,
-		ARRAY_SIZE(qsd_spi_gpio_on_table));
-#endif
 	return 0;
 }
-
-static void msm_qsd_spi_gpio_release(void)
-{
-#if 0
-	config_gpio_table(qsd_spi_gpio_off_table,
-		ARRAY_SIZE(qsd_spi_gpio_off_table));
-#endif
-}
-
 
 static struct msm_spi_platform_data qsd_spi_pdata = {
 	.max_clock_speed = 26331429,
@@ -3089,116 +2854,6 @@ static struct platform_device android_pmem_device = {
 	.id = 0,
 	.dev = { .platform_data = &android_pmem_pdata },
 };
-
-#if 0
-#if defined(CONFIG_FB_MSM_HDMI_ADV7520_PANEL) || defined(CONFIG_BOSCH_BMA150)
-/* there is an i2c address conflict between adv7520 and bma150 sensor after
- * power up on fluid. As a solution, the default address of adv7520's packet
- * memory is changed as soon as possible
- */
-static int __init fluid_i2c_address_fixup(void)
-{
-	unsigned char wBuff[16];
-	unsigned char rBuff[16];
-	struct i2c_msg msgs[3];
-	int res;
-	int rc = -EINVAL;
-	struct vreg *vreg_ldo8;
-	struct i2c_adapter *adapter;
-
-	if (machine_is_msm7x30_fluid()) {
-		adapter = i2c_get_adapter(0);
-		if (!adapter) {
-			pr_err("%s: invalid i2c adapter\n", __func__);
-			return PTR_ERR(adapter);
-		}
-
-		/* turn on LDO8 */
-		vreg_ldo8 = vreg_get(NULL, "gp7");
-		if (!vreg_ldo8) {
-			pr_err("%s: VREG L8 get failed\n", __func__);
-			goto adapter_put;
-		}
-
-		rc = vreg_set_level(vreg_ldo8, 1800);
-		if (rc) {
-			pr_err("%s: VREG L8 set failed\n", __func__);
-			goto ldo8_put;
-		}
-
-		rc = vreg_enable(vreg_ldo8);
-		if (rc) {
-			pr_err("%s: VREG L8 enable failed\n", __func__);
-			goto ldo8_put;
-		}
-
-		/* change packet memory address to 0x74 */
-		wBuff[0] = 0x45;
-		wBuff[1] = 0x74;
-
-		msgs[0].addr = ADV7520_I2C_ADDR;
-		msgs[0].flags = 0;
-		msgs[0].buf = (unsigned char *) wBuff;
-		msgs[0].len = 2;
-
-		res = i2c_transfer(adapter, msgs, 1);
-		if (res != 1) {
-			pr_err("%s: error writing adv7520\n", __func__);
-			goto ldo8_disable;
-		}
-
-		/* powerdown adv7520 using bit 6 */
-		/* i2c read first */
-		wBuff[0] = 0x41;
-
-		msgs[0].addr = ADV7520_I2C_ADDR;
-		msgs[0].flags = 0;
-		msgs[0].buf = (unsigned char *) wBuff;
-		msgs[0].len = 1;
-
-		msgs[1].addr = ADV7520_I2C_ADDR;
-		msgs[1].flags = I2C_M_RD;
-		msgs[1].buf = rBuff;
-		msgs[1].len = 1;
-		res = i2c_transfer(adapter, msgs, 2);
-		if (res != 2) {
-			pr_err("%s: error reading adv7520\n", __func__);
-			goto ldo8_disable;
-		}
-
-		/* i2c write back */
-		wBuff[0] = 0x41;
-		wBuff[1] = rBuff[0] | 0x40;
-
-		msgs[0].addr = ADV7520_I2C_ADDR;
-		msgs[0].flags = 0;
-		msgs[0].buf = (unsigned char *) wBuff;
-		msgs[0].len = 2;
-
-		res = i2c_transfer(adapter, msgs, 1);
-		if (res != 1) {
-			pr_err("%s: error writing adv7520\n", __func__);
-			goto ldo8_disable;
-		}
-
-		/* for successful fixup, we release the i2c adapter */
-		/* but leave ldo8 on so that the adv7520 is not repowered */
-		i2c_put_adapter(adapter);
-		pr_info("%s: fluid i2c address conflict resolved\n", __func__);
-	}
-	return 0;
-
-ldo8_disable:
-	vreg_disable(vreg_ldo8);
-ldo8_put:
-	vreg_put(vreg_ldo8);
-adapter_put:
-	i2c_put_adapter(adapter);
-	return rc;
-}
-fs_initcall_sync(fluid_i2c_address_fixup);
-#endif
-#endif
 
 static struct resource msm_fb_resources[] = {
 	{
@@ -3401,30 +3056,9 @@ static int __init check_dq_setup(char *str)
 __setup("androidboot.dq=", check_dq_setup);
 #endif
 
-#if 0
-static char *msm_adc_fluid_device_names[] = {
-	"LTC_ADC1",
-	"LTC_ADC2",
-	"LTC_ADC3",
-};
-
-static char *msm_adc_surf_device_names[] = {
-	"XO_ADC",
-};
-
-static struct msm_adc_platform_data msm_adc_pdata;
-
-static struct platform_device msm_adc_device = {
-	.name   = "msm_adc",
-	.id = -1,
-	.dev = {
-		.platform_data = &msm_adc_pdata,
-	},
-};
-#endif
-
-#ifdef CONFIG_SERIAL_MSM_HS
+#if defined(CONFIG_SERIAL_MSM_HS) || defined(CONFIG_SERIAL_MSM_HS_LPM)
 static struct msm_serial_hs_platform_data msm_uart_dm1_pdata = {
+	.rx_wakeup_irq = -1,
 	.inject_rx_on_wakeup = 0,
 	.cpu_lock_supported = 1,
 
@@ -3773,11 +3407,6 @@ static struct platform_device *devices[] __initdata = {
 #endif
 	&msm_device_smd,
 	&msm_device_dmov,
-#if 0
-	&smc91x_device,
-	&smsc911x_device,
-	&msm_device_nand,
-#endif
 	&msm_device_otg,
 	&qsd_device_spi,
 #ifdef CONFIG_MSM_SSBI
@@ -3813,10 +3442,6 @@ static struct platform_device *devices[] __initdata = {
 #endif
 	&msm_device_adspdec,
 	&qup_device_i2c,
-#if defined(CONFIG_MARIMBA_CORE) && \
-   (defined(CONFIG_MSM_BT_POWER) || defined(CONFIG_MSM_BT_POWER_MODULE))
-	/*&msm_bt_power_device,*/
-#endif
 	&msm_kgsl_3d0,
 	&msm_kgsl_2d0,
 	&msm_device_vidc_720p,
@@ -3845,9 +3470,6 @@ static struct platform_device *devices[] __initdata = {
 
 #ifdef CONFIG_HTC_BATTCHG
 	&htc_battery_pdev,
-#endif
-#if 0
-	&msm_adc_device,
 #endif
 	&msm_ebi0_thermal,
 	&msm_ebi1_thermal,
@@ -4005,13 +3627,6 @@ static void __init primoc_init_irq(void)
 {
 	msm_init_irq();
 }
-
-#if 0
-static struct msm_gpio msm_nand_ebi2_cfg_data[] = {
-	{GPIO_CFG(86, 1, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_8MA), "ebi2_cs1"},
-	{GPIO_CFG(115, 2, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_8MA), "ebi2_busy1"},
-};
-#endif
 
 struct vreg *primoc_vreg_s3;
 struct vreg *primoc_vreg_mmc;
@@ -4239,11 +3854,6 @@ out:
 
 #define MBP_RESET_N \
 	GPIO_CFG(44, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA)
-#if 0 /* 46 is power key GPIO */
-#define MBP_INT0 \
-	GPIO_CFG(46, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_8MA)
-#endif
-
 #define MBP_MODE_CTRL_0 \
 	GPIO_CFG(35, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA)
 #define MBP_MODE_CTRL_1 \
@@ -4892,29 +4502,6 @@ static void __init msm7x30_init_mmc(void)
 
 }
 
-#if 0
-static void __init msm7x30_init_nand(void)
-{
-	char *build_id;
-	struct flash_platform_data *plat_data;
-
-	build_id = socinfo_get_build_id();
-	if (build_id == NULL) {
-		pr_err("%s: Build ID not available from socinfo\n", __func__);
-		return;
-	}
-
-	if (build_id[8] == 'C' &&
-			!msm_gpios_request_enable(msm_nand_ebi2_cfg_data,
-			ARRAY_SIZE(msm_nand_ebi2_cfg_data))) {
-		plat_data = msm_device_nand.dev.platform_data;
-		plat_data->interleave = 1;
-		printk(KERN_INFO "%s: Interleave mode Build ID found\n",
-			__func__);
-	}
-}
-#endif
-
 /* TSIF begin */
 #if defined(CONFIG_TSIF) || defined(CONFIG_TSIF_MODULE)
 
@@ -5252,16 +4839,6 @@ static void __init primoc_init(void)
 	msm_device_tsif.dev.platform_data = &tsif_platform_data;
 #endif
 
-#if 0
-	if (machine_is_msm7x30_fluid()) {
-		msm_adc_pdata.dev_names = msm_adc_fluid_device_names;
-		msm_adc_pdata.num_adc = ARRAY_SIZE(msm_adc_fluid_device_names);
-	} else {
-		msm_adc_pdata.dev_names = msm_adc_surf_device_names;
-		msm_adc_pdata.num_adc = ARRAY_SIZE(msm_adc_surf_device_names);
-	}
-#endif
-
 #ifdef CONFIG_MSM_SSBI
 	msm_device_ssbi_pmic1.dev.platform_data =
 				&msm7x30_ssbi_pm8058_pdata;
@@ -5341,15 +4918,6 @@ static void __init primoc_init(void)
 #ifdef CONFIG_I2C_SSBI
 	/*msm_device_ssbi6.dev.platform_data = &msm_i2c_ssbi6_pdata;*/
 	msm_device_ssbi7.dev.platform_data = &msm_i2c_ssbi7_pdata;
-#endif
-
-#if 0
-	if (machine_is_msm7x30_fluid())
-		i2c_register_board_info(0, msm_isa1200_board_info,
-			ARRAY_SIZE(msm_isa1200_board_info));
-
-	if (machine_is_msm7x30_surf())
-		platform_device_register(&flip_switch_device);
 #endif
 
 	entry = create_proc_read_entry("emmc", 0, NULL, emmc_partition_read_proc, NULL);
