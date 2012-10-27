@@ -3050,7 +3050,7 @@ __setup("androidboot.dq=", check_dq_setup);
 #endif
 
 #if defined(CONFIG_SERIAL_MSM_HS) || defined(CONFIG_SERIAL_MSM_HS_LPM)
-static struct msm_serial_hs_platform_data msm_uart_dm1_pdata = {
+static struct msm_serial_hs_platform_data = {
 	.rx_wakeup_irq = -1,
 	.inject_rx_on_wakeup = 0,
 	.cpu_lock_supported = 1,
