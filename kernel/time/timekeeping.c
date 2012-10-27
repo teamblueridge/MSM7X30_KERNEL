@@ -650,9 +650,15 @@ static void update_sleep_time(struct timespec t)
 static void __timekeeping_inject_sleeptime(struct timespec *delta)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (!timespec_valid(delta)) {
 		printk(KERN_WARNING "__timekeeping_inject_sleeptime: Invalid "
 			"sleep delta value!\n");
+=======
+	if (!timespec_valid_strict(delta)) {
+		printk(KERN_WARNING "__timekeeping_inject_sleeptime: Invalid "
+					"sleep delta value!\n");
+>>>>>>> 5029e06... 3.0.44
 =======
 	if (!timespec_valid_strict(delta)) {
 		printk(KERN_WARNING "__timekeeping_inject_sleeptime: Invalid "
