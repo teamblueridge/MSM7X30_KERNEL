@@ -373,7 +373,6 @@ extern void mmc_request_done(struct mmc_host *, struct mmc_request *);
 static inline void mmc_signal_sdio_irq(struct mmc_host *host)
 {
 	host->ops->enable_sdio_irq(host, 0);
-	host->sdio_irq_pending = true;
 	wake_up_process(host->sdio_irq_thread);
 }
 
@@ -461,4 +460,3 @@ static inline unsigned int mmc_host_clk_rate(struct mmc_host *host)
 }
 #endif
 #endif
-
