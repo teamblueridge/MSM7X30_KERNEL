@@ -3050,17 +3050,39 @@ __setup("androidboot.dq=", check_dq_setup);
 #endif
 
 #if defined(CONFIG_SERIAL_MSM_HS) || defined(CONFIG_SERIAL_MSM_HS_LPM)
-static struct msm_serial_hs_platform_data = {
-	.rx_wakeup_irq = -1,
+static struct msm_serial_hs_platform_data msm_uart_dm1_pdata = {
+        .rx_wakeup_irq = -1,
 	.inject_rx_on_wakeup = 0,
-	.cpu_lock_supported = 1,
 
+#ifdef CONFIG_SERIAL_BCM_BT_LPM
+	.exit_lpm_cb = bcm_bt_lpm_exit_lpm_locked,
+#else
 	/* for bcm BT */
 	.bt_wakeup_pin_supported = 1,
-	.bt_wakeup_pin = PRIMOC_GPIO_BT_WAKE,
-	.host_wakeup_pin = PRIMOC_GPIO_BT_HOST_WAKE,
+	.bt_wakeup_pin = PRIMOU_GPIO_BT_WAKE,
+	.host_wakeup_pin = PRIMOU_GPIO_BT_HOST_WAKE,
+#endif
+};
+
+#ifdef CONFIG_SERIAL_BCM_BT_LPM
+static struct bcm_bt_lpm_platform_data bcm_bt_lpm_pdata = {
+	.gpio_wake = PRIMOU_GPIO_BT_WAKE,
+	.gpio_host_wake = PRIMOU_GPIO_BT_HOST_WAKE,
+	.request_clock_off_locked = msm_hs_request_clock_off_locked,
+	.request_clock_on_locked = msm_hs_request_clock_on_locked,
+};
+
+struct platform_device bcm_bt_lpm_device = {
+	.name = "bcm_bt_lpm",
+	.id = 0,
+	.dev = {
+		.platform_data = &bcm_bt_lpm_pdata,
+	},
 };
 #endif
+
+#endif
+
 
 #ifdef CONFIG_BT
 static struct platform_device primoc_rfkill = {
