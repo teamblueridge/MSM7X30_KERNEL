@@ -884,7 +884,7 @@ struct platform_device msm_device_vidc_720p = {
 	},
 };
 
-#if defined(CONFIG_MSM_MDP40)
+#if defined(CONFIG_FB_MSM_MDP40)
 #define MDP_BASE          0xA3F00000
 #define PMDH_BASE         0xAD600000
 #define EMDH_BASE         0xAD700000
