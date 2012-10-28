@@ -5007,7 +5007,8 @@ static void __init primoc_init(void)
 	if (!properties_kobj || rc)
 		pr_err("failed to create board_properties\n");
 
-	primoc_init_keypad();
+	primoc_init_gpio_keys();
+
 #ifdef CONFIG_MDP4_HW_VSYNC
 	primoc_te_gpio_config();
 #endif
