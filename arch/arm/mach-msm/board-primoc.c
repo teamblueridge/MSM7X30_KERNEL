@@ -4776,69 +4776,6 @@ static void primoc_te_gpio_config(void)
 }
 #endif
 
-static struct gpio_keys_button primoc_gpio_keys[] = {
-	{
-		.code = KEY_POWER,
-		.gpio = PRIMOC_GPIO_KEYPAD_POWER_KEY,
-		.active_low = 1,
-		.desc = "power",
-		.type = EV_KEY,
-		.wakeup = 1,
-		.debounce_interval = 10,
-		.can_disable = 0,
-		.value = 0,
-	},
-	{
-		.code = KEY_VOLUMEUP,
-		.gpio = PM8058_GPIO_PM_TO_SYS(PRIMOC_VOL_UP),
-		.active_low = 1,
-		.desc = "volume up",
-		.type = EV_KEY,
-		.wakeup = 1,
-		.debounce_interval = 10,
-		.can_disable = 0,
-		.value = 0,
-	},
-	{
-		.code = KEY_VOLUMEDOWN,
-		.gpio = PM8058_GPIO_PM_TO_SYS(PRIMOC_VOL_DN),
-		.active_low = 1,
-		.desc = "volume down",
-		.type = EV_KEY,
-		.wakeup = 1,
-		.debounce_interval = 10,
-		.can_disable = 0,
-		.value = 0,
-	},
-};
-
-static struct gpio_keys_platform_data primoc_gpio_keys_platform_data = {
-	.buttons	= primoc_gpio_keys,
-	.nbuttons	= ARRAY_SIZE(primou_gpio_keys),
-};
-
-static struct platform_device primoc_gpio_keys_device = {
-	.name   = "gpio-keys",
-	.id     = 0,
-	.dev    = {
-		.platform_data  = &primoc_gpio_keys_platform_data,
-	},
-};
-
-static uint32_t inputs_gpio_table[] = {
-	PCOM_GPIO_CFG(PRIMOC_GPIO_KEYPAD_POWER_KEY, 0, GPIO_INPUT,
-		      GPIO_PULL_UP, GPIO_4MA),
-};
-
-int __init primoc_init_gpio_keys(void){
-	pr_info("Registering gpio keys\n");
-
-	gpio_tlmm_config(inputs_gpio_table[0], GPIO_CFG_ENABLE);
-	platform_device_register(&primoc_gpio_keys_device);
-
-	return 0;
-}
-
 __setup("androidboot.serialno=", board_serialno_setup);
 
 static void __init primoc_init(void)
