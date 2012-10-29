@@ -811,7 +811,7 @@ CONFIG_IP6_NF_RAW=y
 # Queueing/Scheduling
 #
 # CONFIG_NET_SCH_CBQ is not set
-CONFIG_NET_SCH_HTB=y
+CONFIG_NET_SCH_SFB=y
 # CONFIG_NET_SCH_HFSC is not set
 # CONFIG_NET_SCH_PRIO is not set
 # CONFIG_NET_SCH_MULTIQ is not set
