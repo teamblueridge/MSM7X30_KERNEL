@@ -4804,7 +4804,7 @@ static void __init primoc_init(void)
 
 #if defined(CONFIG_SERIAL_MSM_HS) || defined(CONFIG_SERIAL_MSM_HS_LPM)
 #ifndef CONFIG_SERIAL_BCM_BT_LPM
-	msm_uart_dm1_pdata.rx_wakeup_irq = gpio_to_irq(PRIMOU_GPIO_BT_HOST_WAKE);
+	msm_uart_dm1_pdata.rx_wakeup_irq = gpio_to_irq(PRIMOC_GPIO_BT_HOST_WAKE);
 #endif
 #ifdef CONFIG_SERIAL_MSM_HS
 	msm_device_uart_dm1.name = "msm_serial_hs_brcm";

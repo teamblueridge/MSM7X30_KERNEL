@@ -133,6 +133,7 @@ static irqreturn_t host_wake_isr(int irq, void *dev)
 
 static int bcm_bt_lpm_probe(struct platform_device *pdev)
 {
+	printk(KERN_ERR "Testing line for bcm_bt_lpm_probe line 136");
 	int irq;
 	int ret;
 	struct bcm_bt_lpm_platform_data *pdata = pdev->dev.platform_data;
@@ -162,7 +163,7 @@ static int bcm_bt_lpm_probe(struct platform_device *pdev)
 	ret = irq_set_irq_wake(irq, 1);
 	if (ret)
 		return ret;
-
+	printk(KERN_ERROR "Probe line");
 	return 0;
 }
 
