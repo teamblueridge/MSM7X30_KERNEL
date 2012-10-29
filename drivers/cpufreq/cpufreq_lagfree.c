@@ -35,12 +35,12 @@
  * It helps to keep variable names smaller, simpler
  */
 
-#define DEF_FREQUENCY_UP_THRESHOLD			CONFIG_LAGFREE_MAX_LOAD
-#define DEF_FREQUENCY_DOWN_THRESHOLD			CONFIG_LAGFREE_MIN_LOAD
-#define FREQ_STEP_DOWN 					CONFIG_LAGFREE_FREQ_STEP_DOWN
-#define FREQ_SLEEP_MAX 					CONFIG_LAGFREE_FREQ_SLEEP_MAX
-#define FREQ_AWAKE_MIN 					CONFIG_LAGFREE_FREQ_AWAKE_MIN
-#define FREQ_STEP_UP_SLEEP_PERCENT 			CONFIG_LAGFREE_FREQ_STEP_UP_SLEEP_PERCENT
+#define DEF_FREQUENCY_UP_THRESHOLD			(50)
+#define DEF_FREQUENCY_DOWN_THRESHOLD		(15)
+#define FREQ_STEP_DOWN 						(108000)
+#define FREQ_SLEEP_MAX 						(368640)
+#define FREQ_AWAKE_MIN 						(245760)
+#define FREQ_STEP_UP_SLEEP_PERCENT 			(20)
 
 /*
  * The polling frequency of this governor depends on the capability of
@@ -401,11 +401,11 @@ static void dbs_check_cpu(int cpu)
 		this_dbs_info->requested_freq += freq_target;
 		if (this_dbs_info->requested_freq > policy->max)
 			this_dbs_info->requested_freq = policy->max;
-		
+
 		//Screen off mode
 		if (suspended && this_dbs_info->requested_freq > FREQ_SLEEP_MAX)
 		    this_dbs_info->requested_freq = FREQ_SLEEP_MAX;
-		    
+
 		//Screen off mode
 		if (!suspended && this_dbs_info->requested_freq < FREQ_AWAKE_MIN)
 		    this_dbs_info->requested_freq = FREQ_AWAKE_MIN;
@@ -460,14 +460,14 @@ static void dbs_check_cpu(int cpu)
 			this_dbs_info->requested_freq = policy->min;
 		else
 			this_dbs_info->requested_freq -= freq_target;
-		
+
 		if (this_dbs_info->requested_freq < policy->min)
 			this_dbs_info->requested_freq = policy->min;
-			
+
 		//Screen on mode
 		if (!suspended && this_dbs_info->requested_freq < FREQ_AWAKE_MIN)
 		    this_dbs_info->requested_freq = FREQ_AWAKE_MIN;
-		
+
 		//Screen off mode
 		if (suspended && this_dbs_info->requested_freq > FREQ_SLEEP_MAX)
 		    this_dbs_info->requested_freq = FREQ_SLEEP_MAX;
@@ -660,4 +660,3 @@ fs_initcall(cpufreq_gov_dbs_init);
 module_init(cpufreq_gov_dbs_init);
 #endif
 module_exit(cpufreq_gov_dbs_exit); 
-
