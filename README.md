@@ -1,3 +1,4 @@
+[![Build Status](http://jenkins.teamblueridge.com/job/msm7x30-kernel-primoc/badge/icon)](http://jenkins.teamblueridge.com/job/msm7x30-kernel-primoc/)
 #LINUX KERNEL
 This builds the Linux for MSM7x30 devices. In this scenario, specifically for the HTC One V (primou/c).
 
