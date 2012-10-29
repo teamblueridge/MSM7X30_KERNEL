@@ -3476,8 +3476,11 @@ static struct platform_device *devices[] __initdata = {
 #endif
 	&msm_ebi0_thermal,
 	&msm_ebi1_thermal,
-#ifdef CONFIG_SERIAL_MSM_HS
-	&msm_device_uart_dm1,
+#ifdef CONFIG_SERIAL_BCM_BT_LPM
+       &bcm_bt_lpm_device,
+#endif
+#if defined(CONFIG_SERIAL_MSM_HS) || defined(CONFIG_SERIAL_MSM_HS_LPM)
+       &msm_device_uart_dm1,
 #endif
 #ifdef CONFIG_BT
 	&primoc_rfkill,
