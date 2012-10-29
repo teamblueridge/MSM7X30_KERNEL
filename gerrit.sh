@@ -15,9 +15,9 @@ else
 fi
 un=`cat ~/.ssh/tbr_username` # Redefines $un as tbr_username file contents (from setup)
 echo "Your username is $un to reconfigure, run this command (w/o quotes) 'rm -rf ~/.ssh/tbr_username'"
-echo -n "What is the project name: "
+echo -n "Project name: "
 read projectname
-echo -n "What branch are you pushing to: "
+echo -n "Branch: "
 read branch
 git push "ssh://$un@gerrit.teamblueridge.com:29418/$projectname" "HEAD:refs/for/$branch"
 echo "If your push succeeded, please go to $url to view the status."
