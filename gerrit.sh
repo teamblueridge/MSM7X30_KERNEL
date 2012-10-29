@@ -20,4 +20,4 @@ read projectname
 echo -n "What branch are you pushing to: "
 read branch
 git push "ssh://$un@gerrit.teamblueridge.com:29418/$projectname" "HEAD:refs/for/$branch"
-echo "If your push succeeded, please go to $url to vierw the status.
+echo "If your push succeeded, please go to $url to vierw the status."
