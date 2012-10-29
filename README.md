@@ -8,7 +8,7 @@ Project Name: 'MSM7X30_KERNEL'
 Branch: <ics/jb/jb-hack>
 
 #Toolchain
-You need the ARM toolchain from AOSP to build this kernel. You can get it using 'git clone https://android.googlesource.com/platform/prebuilts/tools'
+You need the proper toolchain from AOSP to build this kernel. You can get it using 'git clone https://android.googlesource.com/platform/prebuilts/tools'
 
 #Building
 The recommended way to build this repository is to use a script like the following.
