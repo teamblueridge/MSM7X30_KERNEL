@@ -343,7 +343,7 @@ int fat_search_long(struct inode *inode, const unsigned char *name,
 	struct super_block *sb = inode->i_sb;
 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
 	struct buffer_head *bh = NULL;
-	struct msdos_dir_entry *de = NULL;
+	struct msdos_dir_entry *de;
 	struct nls_table *nls_disk = sbi->nls_disk;
 	unsigned char nr_slots;
 	wchar_t bufuname[14];
@@ -754,13 +754,6 @@ static int fat_ioctl_readdir(struct inode *inode, struct file *filp,
 	return ret;
 }
 
-static int fat_ioctl_volume_id(struct inode *dir)
-{
-	struct super_block *sb = dir->i_sb;
-	struct msdos_sb_info *sbi = MSDOS_SB(sb);
-	return sbi->vol_id;
-}
-
 static long fat_dir_ioctl(struct file *filp, unsigned int cmd,
 			  unsigned long arg)
 {
@@ -777,8 +770,6 @@ static long fat_dir_ioctl(struct file *filp, unsigned int cmd,
 		short_only = 0;
 		both = 1;
 		break;
-	case VFAT_IOCTL_GET_VOLUME_ID:
-		return fat_ioctl_volume_id(inode);
 	default:
 		return fat_generic_ioctl(filp, cmd, arg);
 	}
