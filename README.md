@@ -5,7 +5,7 @@ This builds the Linux for MSM7x30 devices. In this scenario, specifically for th
 #Code Review
 Team BlueRidge uses Gerrit Code Review for changes to this repository. Pull requests are not accepted. To push to this repository clone the repository and create an acccount on [Team BlueRidge Gerrit](http://gerrit.teamblueridge.com). Then execute './gerrit.sh' in the repository directory.
 Project Name: 'MSM7X30_KERNEL'
-Branch: ics/jb/jb-hack
+Branch: ics/jb/jb-hack (choose one)
 
 #Toolchain
 You need the proper toolchain from AOSP to build this kernel. You can get it using 'git clone https://android.googlesource.com/platform/prebuilts/tools'
