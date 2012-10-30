@@ -3,23 +3,15 @@
  *
  * Delay routines, using a pre-computed "loops_per_second" value.
  */
-#ifndef __ASM_ARM_DELAY_H
-#define __ASM_ARM_DELAY_H
-
-#include <asm/param.h>	/* HZ */
-
-extern void __delay(unsigned long loops);
-
-/*
+#ifndef __ASM_ARM_DELAY_H define __ASM_ARM_DELAY_H include <asm/param.h>	
+#/* HZ */
+extern void __delay(unsigned long loops); /*
  * This function intentionally does not exist; if you see references to
  * it, it means that you're calling udelay() with an out of range value.
  *
  * With currently imposed limits, this means that we support a max delay
  * of 2000us. Further limits: HZ<=1000 and bogomips<=3355
- */
-extern void __bad_udelay(void);
-
-/*
+ */ extern void __bad_udelay(void); /*
  * division by multiplication: you don't have to worry about
  * loss of precision.
  *
@@ -28,20 +20,13 @@ extern void __bad_udelay(void);
  * short delays.  This is a "reasonable" implementation, though (and the
  * first constant multiplications gets optimized away if the delay is
  * a constant)
- */
-extern void __udelay(unsigned long usecs);
-extern void __const_udelay(unsigned long);
-
-#define MAX_UDELAY_MS 2
-
-#define udelay(n)							\
-	(__builtin_constant_p(n) ?					\
-	  ((n) > (MAX_UDELAY_MS * 1000) ? __bad_udelay() :		\
-			__const_udelay((n) * ((2199023U*HZ)>>11))) :	\
-	  __udelay(n))
-
-extern void set_delay_fn(void (*fn)(unsigned long));
-extern void read_current_timer_delay_loop(unsigned long loops);
-
+ */ extern void __udelay(unsigned long usecs); extern void 
+__const_udelay(unsigned long);
+#define MAX_UDELAY_MS 2 define udelay(n) \
+	(__builtin_constant_p(n) ?  \
+	  ((n) > (MAX_UDELAY_MS * 1000) ? __bad_udelay() : \
+			__const_udelay((n) * ((2199023U*HZ)>>11))) :	
+\
+	  __udelay(n)) extern void set_delay_fn(void (*fn)(unsigned 
+long)); extern void read_current_timer_delay_loop(unsigned long loops);
 #endif /* defined(_ARM_DELAY_H) */
-
