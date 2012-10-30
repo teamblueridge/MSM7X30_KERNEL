@@ -775,6 +775,18 @@ static int __devinit hpwdt_init_one(struct pci_dev *dev,
 	/* Make sure that timer is disabled until /dev/watchdog is opened */
 	hpwdt_stop();
 
+	/* Make sure that timer is disabled until /dev/watchdog is opened */
+	hpwdt_stop();
+
+	/* Make sure that timer is disabled until /dev/watchdog is opened */
+	hpwdt_stop();
+
+	/* Make sure that timer is disabled until /dev/watchdog is opened */
+	hpwdt_stop();
+
+	/* Make sure that timer is disabled until /dev/watchdog is opened */
+	hpwdt_stop();
+
 	/* Make sure that we have a valid soft_margin */
 	if (hpwdt_change_timer(soft_margin))
 		hpwdt_change_timer(DEFAULT_MARGIN);

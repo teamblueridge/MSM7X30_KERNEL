@@ -788,15 +788,19 @@ static void quiesce_and_remove_host(struct us_data *us)
 	struct Scsi_Host *host = us_to_host(us);
 
 	/* If the device is really gone, cut short reset delays */
-	if (us->pusb_dev->state == USB_STATE_NOTATTACHED)
+	if (us->pusb_dev->state == USB_STATE_NOTATTACHED) {
 		set_bit(US_FLIDX_DISCONNECTING, &us->dflags);
+		wake_up(&us->delay_wait);
+	}
 
-	/* Prevent SCSI-scanning (if it hasn't started yet)
-	 * and wait for the SCSI-scanning thread to stop.
+	/* Prevent SCSI scanning (if it hasn't started yet)
+	 * or wait for the SCSI-scanning routine to stop.
 	 */
-	set_bit(US_FLIDX_DONT_SCAN, &us->dflags);
-	wake_up(&us->delay_wait);
-	wait_for_completion(&us->scanning_done);
+	cancel_delayed_work_sync(&us->scan_dwork);
+
+	/* Balance autopm calls if scanning was cancelled */
+	if (test_bit(US_FLIDX_SCAN_PENDING, &us->dflags))
+		usb_autopm_put_interface_no_suspend(us->pusb_intf);
 
 	/* Removing the host will perform an orderly shutdown: caches
 	 * synchronized, disks spun down, etc.
@@ -915,7 +919,7 @@ int usb_stor_probe1(struct us_data **pus,
 	init_completion(&us->cmnd_ready);
 	init_completion(&(us->notify));
 	init_waitqueue_head(&us->delay_wait);
-	init_completion(&us->scanning_done);
+	INIT_DELAYED_WORK(&us->scan_dwork, usb_stor_scan_dwork);
 
 	/* Associate the us_data structure with the USB device */
 	result = associate_dev(us, intf);
@@ -946,7 +950,6 @@ EXPORT_SYMBOL_GPL(usb_stor_probe1);
 /* Second part of general USB mass-storage probing */
 int usb_stor_probe2(struct us_data *us)
 {
-	struct task_struct *th;
 	int result;
 	struct device *dev = &us->pusb_intf->dev;
 
@@ -987,20 +990,14 @@ int usb_stor_probe2(struct us_data *us)
 		goto BadDevice;
 	}
 
-	/* Start up the thread for delayed SCSI-device scanning */
-	th = kthread_create(usb_stor_scan_thread, us, "usb-stor-scan");
-	if (IS_ERR(th)) {
-		dev_warn(dev,
-				"Unable to start the device-scanning thread\n");
-		complete(&us->scanning_done);
-		quiesce_and_remove_host(us);
-		result = PTR_ERR(th);
-		goto BadDevice;
-	}
-
+	/* Submit the delayed_work for SCSI-device scanning */
 	usb_autopm_get_interface_no_resume(us->pusb_intf);
-	wake_up_process(th);
+	set_bit(US_FLIDX_SCAN_PENDING, &us->dflags);
 
+	if (delay_use > 0)
+		dev_dbg(dev, "waiting for device to settle before scanning\n");
+	queue_delayed_work(system_freezable_wq, &us->scan_dwork,
+			delay_use * HZ);
 	return 0;
 
 	/* We come here if there are any problems */
@@ -1073,6 +1070,7 @@ static struct usb_driver usb_storage_driver = {
 	.id_table =	usb_storage_usb_ids,
 	.supports_autosuspend = 1,
 	.soft_unbind =	1,
+	.no_dynamic_id = 1,
 };
 
 static int __init usb_stor_init(void)

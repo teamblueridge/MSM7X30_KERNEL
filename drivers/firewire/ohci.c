@@ -262,6 +262,7 @@ static inline struct fw_ohci *fw_ohci(struct fw_card *card)
 static char ohci_driver_name[] = KBUILD_MODNAME;
 
 #define PCI_DEVICE_ID_AGERE_FW643	0x5901
+#define PCI_DEVICE_ID_CREATIVE_SB1394	0x4001
 #define PCI_DEVICE_ID_JMICRON_JMB38X_FW	0x2380
 #define PCI_DEVICE_ID_TI_TSB12LV22	0x8009
 #define PCI_VENDOR_ID_PINNACLE_SYSTEMS	0x11bd

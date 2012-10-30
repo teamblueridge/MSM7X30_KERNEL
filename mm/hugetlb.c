@@ -460,8 +460,10 @@ static struct page *dequeue_huge_page_vma(struct hstate *h,
 	struct zonelist *zonelist;
 	struct zone *zone;
 	struct zoneref *z;
+	unsigned int cpuset_mems_cookie;
 
-	get_mems_allowed();
+retry_cpuset:
+	cpuset_mems_cookie = get_mems_allowed();
 	zonelist = huge_zonelist(vma, address,
 					htlb_alloc_mask, &mpol, &nodemask);
 	/*
@@ -488,10 +490,15 @@ static struct page *dequeue_huge_page_vma(struct hstate *h,
 			}
 		}
 	}
+
+	mpol_cond_put(mpol);
+	if (unlikely(!put_mems_allowed(cpuset_mems_cookie) && !page))
+		goto retry_cpuset;
+	return page;
+
 err:
 	mpol_cond_put(mpol);
-	put_mems_allowed();
-	return page;
+	return NULL;
 }
 
 static void update_and_free_page(struct hstate *h, struct page *page)
@@ -858,6 +865,7 @@ static int gather_surplus_pages(struct hstate *h, int delta)
 		h->resv_huge_pages += delta;
 		return 0;
 	}
+	spin_unlock(&hugetlb_lock);
 
 	allocated = 0;
 	INIT_LIST_HEAD(&surplus_list);
@@ -2069,6 +2077,15 @@ static void resv_map_put(struct vm_area_struct *vma)
 	kref_put(&reservations->refs, resv_map_release);
 }
 
+static void resv_map_put(struct vm_area_struct *vma)
+{
+	struct resv_map *reservations = vma_resv_map(vma);
+
+	if (!reservations)
+		return;
+	kref_put(&reservations->refs, resv_map_release);
+}
+
 static void hugetlb_vm_op_close(struct vm_area_struct *vma)
 {
 	struct hstate *h = hstate_vma(vma);
@@ -2975,6 +2992,10 @@ static int is_hugepage_on_freelist(struct page *hpage)
 		if (page == hpage)
 			return 1;
 	return 0;
+out_err:
+	if (vma)
+		resv_map_put(vma);
+	return ret;
 }
 
 /*
