@@ -58,6 +58,8 @@ static void set_wake_locked(int wake)
 		return;
 	bt_lpm.wake = wake;
 
+	printk(KERN_ERR "[BT] %s wake=%d\n", __func__, wake);
+
 	gpio_set_value(bt_lpm.gpio_wake, wake);
 	if (wake || bt_lpm.host_wake)
 		bt_lpm.request_clock_on_locked(bt_lpm.uport);
@@ -117,7 +119,6 @@ static irqreturn_t host_wake_isr(int irq, void *dev)
 	irq_set_irq_type(irq, host_wake ? IRQF_TRIGGER_LOW : IRQF_TRIGGER_HIGH);
 
 	if (!bt_lpm.uport) {
-		printk(KERN_INFO "[BT] %s !bt_lpm.uport\n", __func__);
 		bt_lpm.host_wake = host_wake;
 		return IRQ_HANDLED;
 	}
@@ -133,7 +134,6 @@ static irqreturn_t host_wake_isr(int irq, void *dev)
 
 static int bcm_bt_lpm_probe(struct platform_device *pdev)
 {
-	printk(KERN_ERR "Testing line for bcm_bt_lpm_probe line 136");
 	int irq;
 	int ret;
 	struct bcm_bt_lpm_platform_data *pdata = pdev->dev.platform_data;
@@ -163,7 +163,7 @@ static int bcm_bt_lpm_probe(struct platform_device *pdev)
 	ret = irq_set_irq_wake(irq, 1);
 	if (ret)
 		return ret;
-	printk(KERN_ERROR "Probe line");
+
 	return 0;
 }
 
