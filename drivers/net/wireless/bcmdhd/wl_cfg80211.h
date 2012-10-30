@@ -1,9 +1,9 @@
 /*
  * Linux cfg80211 driver
  *
- * Copyright (C) 1999-2011, Broadcom Corporation
+ * Copyright (C) 1999-2012, Broadcom Corporation
  * 
- *         Unless you and Broadcom execute a separate written software license
+ *      Unless you and Broadcom execute a separate written software license
  * agreement governing use of this software, this software is licensed to you
  * under the terms of the GNU General Public License version 2 (the "GPL"),
  * available at http://www.broadcom.com/licenses/GPLv2.php, with the
@@ -21,7 +21,7 @@
  * software in any way with any other Broadcom software provided under a license
  * other than the GPL, without Broadcom's express prior written consent.
  *
- * $Id: wl_cfg80211.h,v 1.1.4.1.2.8 2011/02/09 01:37:52 Exp $
+ * $Id: wl_cfg80211.h 316895 2012-02-24 00:05:41Z $
  */
 
 #ifndef _wl_cfg80211_h_
@@ -64,7 +64,7 @@ struct wl_ibss;
 #define	WL_ERR(args)									\
 do {										\
 	if (wl_dbg_level & WL_DBG_ERR) {				\
-			printf(KERN_ERR "CFG80211-ERROR) %s : ", __func__);	\
+			printk(KERN_ERR "CFG80211-ERROR) %s : ", __func__);	\
 			printk args;						\
 		} 								\
 } while (0)
@@ -74,7 +74,7 @@ do {										\
 #define	WL_INFO(args)									\
 do {										\
 	if (wl_dbg_level & WL_DBG_INFO) {				\
-			printf(KERN_ERR "CFG80211-INFO) %s : ", __func__);	\
+			printk(KERN_ERR "CFG80211-INFO) %s : ", __func__);	\
 			printk args;						\
 		}								\
 } while (0)
@@ -84,7 +84,7 @@ do {										\
 #define	WL_SCAN(args)								\
 do {									\
 	if (wl_dbg_level & WL_DBG_SCAN) {			\
-		printf(KERN_ERR "CFG80211-SCAN) %s :", __func__);	\
+		printk(KERN_ERR "CFG80211-SCAN) %s :", __func__);	\
 		printk args;							\
 	}									\
 } while (0)
@@ -94,7 +94,7 @@ do {									\
 #define	WL_TRACE(args)								\
 do {									\
 	if (wl_dbg_level & WL_DBG_TRACE) {			\
-		printf(KERN_ERR "CFG80211-TRACE) %s :", __func__);	\
+		printk(KERN_ERR "CFG80211-TRACE) %s :", __func__);	\
 		printk args;							\
 	}									\
 } while (0)
@@ -102,7 +102,7 @@ do {									\
 #define	WL_DBG(args)								\
 do {									\
 	if (wl_dbg_level & WL_DBG_DBG) {			\
-		printf(KERN_ERR "CFG80211-DEBUG) %s :", __func__);	\
+		printk(KERN_ERR "CFG80211-DEBUG) %s :", __func__);	\
 		printk args;							\
 	}									\
 } while (0)
@@ -111,35 +111,23 @@ do {									\
 #endif				/* (WL_DBG_LEVEL > 0) */
 
 
-#define WL_SCAN_RETRY_MAX	3	/* used for ibss scan */
-#define WL_NUM_PMKIDS_MAX	MAXPMKID	/* will be used
-						 * for 2.6.33 kernel
-						 * or later
-						 */
-#define WL_SCAN_BUF_MAX 		(1024 * 8)
-#define WL_TLV_INFO_MAX 		1024
+#define WL_SCAN_RETRY_MAX	3
+#define WL_NUM_PMKIDS_MAX	MAXPMKID
+#define WL_SCAN_BUF_MAX 	(1024 * 8)
+#define WL_TLV_INFO_MAX 	1024
 #define WL_SCAN_IE_LEN_MAX      2048
-#define WL_BSS_INFO_MAX			2048
-#define WL_ASSOC_INFO_MAX	512	/*
-				 * needs to grab assoc info from dongle to
-				 * report it to cfg80211 through "connect"
-				 * event
-				 */
+#define WL_BSS_INFO_MAX		2048
+#define WL_ASSOC_INFO_MAX	512
 #define WL_IOCTL_LEN_MAX	1024
 #define WL_EXTRA_BUF_MAX	2048
-#define WL_ISCAN_BUF_MAX	2048	/*
-				 * the buf lengh can be WLC_IOCTL_MAXLEN (8K)
-				 * to reduce iteration
-				 */
+#define WL_ISCAN_BUF_MAX	2048
 #define WL_ISCAN_TIMER_INTERVAL_MS	3000
 #define WL_SCAN_ERSULTS_LAST 	(WL_SCAN_RESULTS_NO_MEM+1)
-#define WL_AP_MAX	256	/* virtually unlimitted as long
-				 * as kernel memory allows
-				 */
-#define WL_FILE_NAME_MAX		256
-#define WL_DWELL_TIME 	200
+#define WL_AP_MAX		256
+#define WL_FILE_NAME_MAX	256
+#define WL_DWELL_TIME 		200
 #define WL_MED_DWELL_TIME       400
-#define WL_LONG_DWELL_TIME 1000
+#define WL_LONG_DWELL_TIME 	1000
 #define IFACE_MAX_CNT 		2
 
 #define WL_SCAN_TIMER_INTERVAL_MS	8000 /* Scan timeout */
@@ -450,11 +438,6 @@ struct wl_priv {
 	struct afx_hdl *afx_hdl;
 	struct ap_info *ap_info;
 	struct sta_info *sta_info;
-//BRCM APSTA START
-#ifdef APSTA_CONCURRENT
-	bool apsta_concurrent;
-#endif
-//BRCM APSTA END
 	struct p2p_info *p2p;
 	bool p2p_supported;
 	struct btcoex_info *btcoex_info;
@@ -469,7 +452,7 @@ static inline struct wl_bss_info *next_bss(struct wl_scan_results *list, struct 
 }
 static inline s32
 wl_alloc_netinfo(struct wl_priv *wl, struct net_device *ndev,
-	struct wireless_dev *wdev, s32 mode)
+	struct wireless_dev * wdev, s32 mode)
 {
 	struct net_info *_net_info;
 	s32 err = 0;
@@ -491,16 +474,15 @@ static inline void
 wl_dealloc_netinfo(struct wl_priv *wl, struct net_device *ndev)
 {
 	struct net_info *_net_info, *next;
-        printk("[%s] ndev->name[%s]",__FUNCTION__,ndev->name);
+
 	list_for_each_entry_safe(_net_info, next, &wl->net_list, list) {
 		if (ndev && (_net_info->ndev == ndev)) {
-                  if((&_net_info->list)->next == LIST_POISON1 || (&_net_info->list)->prev == LIST_POISON2)
-                        continue;
 			list_del(&_net_info->list);
 			wl->iface_cnt--;
-			kfree(_net_info->wdev);
-			ndev->ieee80211_ptr = NULL;
-
+			if (_net_info->wdev) {
+				kfree(_net_info->wdev);
+				ndev->ieee80211_ptr = NULL;
+			}
 			kfree(_net_info);
 		}
 	}
@@ -513,8 +495,8 @@ wl_delete_all_netinfo(struct wl_priv *wl)
 
 	list_for_each_entry_safe(_net_info, next, &wl->net_list, list) {
 		list_del(&_net_info->list);
-
-			kfree(_net_info->wdev);
+			if (_net_info->wdev)
+				kfree(_net_info->wdev);
 			kfree(_net_info);
 	}
 	wl->iface_cnt = 0;
@@ -542,13 +524,13 @@ wl_set_status_by_netdev(struct wl_priv *wl, s32 status,
 	list_for_each_entry_safe(_net_info, next, &wl->net_list, list) {
 		if (ndev && (_net_info->ndev == ndev)) {
 			switch (op) {
-			case 1:
+				case 1:
 					set_bit(status, &_net_info->sme_state);
 					break;
-			case 2:
+				case 2:
 					clear_bit(status, &_net_info->sme_state);
 					break;
-			case 4:
+				case 4:
 					change_bit(status, &_net_info->sme_state);
 					break;
 			}
@@ -651,7 +633,8 @@ struct device *wl_cfg80211_get_parent_dev(void);
 
 extern s32 wl_cfg80211_up(void *para);
 extern s32 wl_cfg80211_down(void *para);
-extern s32 wl_cfg80211_notify_ifadd(struct net_device *net, s32 idx, s32 bssidx, void *_net_attach);
+extern s32 wl_cfg80211_notify_ifadd(struct net_device *ndev, s32 idx, s32 bssidx,
+	void* _net_attach);
 extern s32 wl_cfg80211_ifdel_ops(struct net_device *net);
 extern s32 wl_cfg80211_notify_ifdel(struct net_device *ndev);
 extern s32 wl_cfg80211_is_progress_ifadd(void);
@@ -666,13 +649,10 @@ extern s32 wl_cfg80211_set_wps_p2p_ie(struct net_device *net, char *buf, int len
 	enum wl_management_type type);
 extern s32 wl_cfg80211_set_p2p_ps(struct net_device *net, char* buf, int len);
 extern int wl_cfg80211_hang(struct net_device *dev, u16 reason);
-extern int wl_cfg80211_rssilow(struct net_device *dev);
 extern s32 wl_mode_to_nl80211_iftype(s32 mode);
-extern s32 wl_cfg80211_set_mpc(struct net_device *net, char* buf, int len);
-extern s32 wl_cfg80211_deauth_sta(struct net_device *net, char* buf, int len);
-
-/* do scan abort */
-extern s32 wl_cfg80211_scan_abort(struct wl_priv *wl, struct net_device *ndev);
-
+int wl_cfg80211_do_driver_init(struct net_device *net);
+void wl_cfg80211_enable_trace(int level);
 extern s32 wl_cfg80211_if_is_group_owner(void);
+extern chanspec_t wl_ch_host_to_driver(u16 channel);
+
 #endif				/* _wl_cfg80211_h_ */
