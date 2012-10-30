@@ -1487,7 +1487,7 @@ struct task_struct {
 #endif
 #ifdef CONFIG_CPUSETS
 	nodemask_t mems_allowed;	/* Protected by alloc_lock */
-	int mems_allowed_change_disable;
+	seqcount_t mems_allowed_seq;	/* Seqence no to catch updates */
 	int cpuset_mem_spread_rotor;
 	int cpuset_slab_spread_rotor;
 #endif
@@ -1756,12 +1756,6 @@ static inline void put_task_struct(struct task_struct *t)
 
 extern void task_times(struct task_struct *p, cputime_t *ut, cputime_t *st);
 extern void thread_group_times(struct task_struct *p, cputime_t *ut, cputime_t *st);
-
-extern int task_free_register(struct notifier_block *n);
-extern int task_free_unregister(struct notifier_block *n);
-
-extern int task_fork_register(struct notifier_block *n);
-extern int task_fork_unregister(struct notifier_block *n);
 
 /*
  * Per process flags
