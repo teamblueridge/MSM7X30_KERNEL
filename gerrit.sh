@@ -1,14 +1,15 @@
 #!/bin/bash
 if [ -f ~/.ssh/tbr_username ]
 url="http://gerrit.teamblueridge.com"
+name= "Team BlueRidge Gerrit"
 then
-	echo "Welcome back to Team BlueRidge Gerrit!"
+	echo "Welcome back to $name!"
 	echo "You've already been through setup. Lets continue!"
 else
-	echo "Welcome to Team BlueRidge Gerrit"
+	echo "Welcome to $name"
 	echo "You need to setup your account."
-	echo "If you don't have a Team BlueRidge Gerrit account, please go to $url and create one."
-	echo -n "What is your Gerrit username: "
+	echo "If you don't have a $name account, please go to $url and create one."
+	echo -n "What is your $name username: "
 	read un #'$un' = Username
 	echo $un > ~/.ssh/tbr_username
 	echo "BE SURE YOUR SSH KEYS ARE MATCHED WITH GERRIT IN YOUR SETTINGS"
