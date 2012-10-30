@@ -1,8 +1,8 @@
 /*
 * Customer code to add GPIO control during WLAN start/stop
-* Copyright (C) 1999-2011, Broadcom Corporation
+* Copyright (C) 1999-2012, Broadcom Corporation
 * 
-*         Unless you and Broadcom execute a separate written software license
+*      Unless you and Broadcom execute a separate written software license
 * agreement governing use of this software, this software is licensed to you
 * under the terms of the GNU General Public License version 2 (the "GPL"),
 * available at http://www.broadcom.com/licenses/GPLv2.php, with the
@@ -20,7 +20,7 @@
 * software in any way with any other Broadcom software provided under a license
 * other than the GPL, without Broadcom's express prior written consent.
 *
-* $Id: dhd_custom_gpio.c 275786 2011-08-04 22:42:42Z $
+* $Id: dhd_custom_gpio.c 291086 2011-10-21 01:17:24Z $
 */
 
 #include <typedefs.h>
@@ -41,13 +41,19 @@
 extern  void bcm_wlan_power_off(int);
 extern  void bcm_wlan_power_on(int);
 #endif /* CUSTOMER_HW */
-#if  defined(CUSTOMER_HW2)
-int wifi_set_carddetect(int on);
+#if defined(CUSTOMER_HW2)
+#ifdef CONFIG_WIFI_CONTROL_FUNC
 int wifi_set_power(int on, unsigned long msec);
 int wifi_get_irq_number(unsigned long *irq_flags_ptr);
 int wifi_get_mac_addr(unsigned char *buf);
 void *wifi_get_country_code(char *ccode);
-#endif
+#else
+int wifi_set_power(int on, unsigned long msec) { return -1; }
+int wifi_get_irq_number(unsigned long *irq_flags_ptr) { return -1; }
+int wifi_get_mac_addr(unsigned char *buf) { return -1; }
+void *wifi_get_country_code(char *ccode) { return NULL; }
+#endif /* CONFIG_WIFI_CONTROL_FUNC */
+#endif /* CUSTOMER_HW2 */
 
 #if defined(OOB_INTR_ONLY)
 
@@ -92,7 +98,7 @@ int dhd_customer_oob_irq_map(unsigned long *irq_flags_ptr)
 
 	if (dhd_oob_gpio_num < 0) {
 		WL_ERROR(("%s: ERROR customer specific Host GPIO is NOT defined \n",
-			__FUNCTION__));
+		__FUNCTION__));
 		return (dhd_oob_gpio_num);
 	}
 
@@ -235,16 +241,6 @@ const struct cntry_locales_custom translate_custom_table[] = {
 	{"CH", "CH", 0},
 	{"TR", "TR", 0},
 	{"NO", "NO", 0},
-#else
-	{"KR", "KR", 3},
-	{"AD", "XW", 0},
-	{"CK", "XW", 0},
-	{"GL", "XW", 0},
-	{"KP", "XW", 0},
-	{"MH", "XW", 0},
-	{"PS", "XW", 0},
-	{"SD", "XW", 0},
-	{"TL", "XW", 0},
 #endif /* EXMAPLE_TABLE */
 };
 
