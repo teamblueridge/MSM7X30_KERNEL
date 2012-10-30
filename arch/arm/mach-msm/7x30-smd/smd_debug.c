@@ -169,11 +169,12 @@ static void sleep_stat_late_resume(struct early_suspend *handler)
 	print_sleep_stat(F_SCREEN_ON);
 }
 
+/* remove by simonsimons34
 static struct early_suspend sleep_stat_screen_hdl = {
 	.suspend = sleep_stat_early_suspend,
 	.resume = sleep_stat_late_resume,
 };
-
+*/
 #if defined(CONFIG_DEBUG_FS)
 
 static char *chstate(unsigned n)
