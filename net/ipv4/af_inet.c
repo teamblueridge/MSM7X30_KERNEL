@@ -118,19 +118,6 @@
 #include <linux/mroute.h>
 #endif
 
-#ifdef CONFIG_ANDROID_PARANOID_NETWORK
-#include <linux/android_aid.h>
-
-static inline int current_has_network(void)
-{
-	return in_egroup_p(AID_INET) || capable(CAP_NET_RAW);
-}
-#else
-static inline int current_has_network(void)
-{
-	return 1;
-}
-#endif
 
 /* The inetsw table contains everything that inet_create needs to
  * build a new socket.
@@ -287,9 +274,6 @@ static int inet_create(struct net *net, struct socket *sock, int protocol,
 	char answer_no_check;
 	int try_loading_module = 0;
 	int err;
-
-	if (!current_has_network())
-		return -EACCES;
 
 	if (unlikely(!inet_ehash_secret))
 		if (sock->type != SOCK_RAW && sock->type != SOCK_DGRAM)
@@ -891,7 +875,6 @@ int inet_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 	case SIOCSIFPFLAGS:
 	case SIOCGIFPFLAGS:
 	case SIOCSIFFLAGS:
-	case SIOCKILLADDR:
 		err = devinet_ioctl(net, cmd, (void __user *)arg);
 		break;
 	default:
@@ -1352,13 +1335,6 @@ static struct sk_buff **inet_gro_receive(struct sk_buff **head,
 		if (unlikely(!iph))
 			goto out;
 	}
-
-#ifdef CONFIG_HTC_NETWORK_MODIFY
-	if (IS_ERR(iph) || (!iph)) {
-		printk(KERN_ERR "[NET] iph is NULL in %s!\n", __func__);
-		goto out;
-	}
-#endif
 
 	proto = iph->protocol & (MAX_INET_PROTOS - 1);
 
