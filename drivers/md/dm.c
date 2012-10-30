@@ -1048,11 +1048,6 @@ static struct bio *split_bvec(struct bio *bio, sector_t sector,
 	struct bio_vec *bv = bio->bi_io_vec + idx;
 
 	clone = bio_alloc_bioset(GFP_NOIO, 1, bs);
-	if (!clone) {
-		printk(KERN_WARNING "%s : %s() failed\n", __FILE__, __func__);
-		BUG_ON(1);
-	}
-
 	clone->bi_destructor = dm_bio_destructor;
 	*clone->bi_io_vec = *bv;
 
@@ -1066,7 +1061,7 @@ static struct bio *split_bvec(struct bio *bio, sector_t sector,
 	clone->bi_flags |= 1 << BIO_CLONED;
 
 	if (bio_integrity(bio)) {
-		(void) bio_integrity_clone(clone, bio, GFP_NOIO, bs);
+		bio_integrity_clone(clone, bio, GFP_NOIO, bs);
 		bio_integrity_trim(clone,
 				   bio_sector_offset(bio, idx, offset), len);
 	}
@@ -1084,10 +1079,6 @@ static struct bio *clone_bio(struct bio *bio, sector_t sector,
 	struct bio *clone;
 
 	clone = bio_alloc_bioset(GFP_NOIO, bio->bi_max_vecs, bs);
-	if (!clone) {
-		printk(KERN_WARNING "%s : %s() failed\n", __FILE__, __func__);
-		BUG_ON(1);
-	}
 	__bio_clone(clone, bio);
 	clone->bi_destructor = dm_bio_destructor;
 	clone->bi_sector = sector;
@@ -1097,7 +1088,7 @@ static struct bio *clone_bio(struct bio *bio, sector_t sector,
 	clone->bi_flags &= ~(1 << BIO_SEG_VALID);
 
 	if (bio_integrity(bio)) {
-		(void) bio_integrity_clone(clone, bio, GFP_NOIO, bs);
+		bio_integrity_clone(clone, bio, GFP_NOIO, bs);
 
 		if (idx != bio->bi_idx || clone->bi_size < bio->bi_size)
 			bio_integrity_trim(clone,
@@ -1133,10 +1124,6 @@ static void __issue_target_request(struct clone_info *ci, struct dm_target *ti,
 	 * and discard, so no need for concern about wasted bvec allocations.
 	 */
 	clone = bio_alloc_bioset(GFP_NOIO, ci->bio->bi_max_vecs, ci->md->bs);
-	if (!clone) {
-		printk(KERN_WARNING "%s : %s() failed\n", __FILE__, __func__);
-		BUG_ON(1);
-	}
 	__bio_clone(clone, ci->bio);
 	clone->bi_destructor = dm_bio_destructor;
 	if (len) {
