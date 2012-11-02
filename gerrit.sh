@@ -1,7 +1,7 @@
 #!/bin/bash
-if [ -f ~/.ssh/tbr_username ]
 url="http://gerrit.teamblueridge.com"
-name= "Team BlueRidge Gerrit"
+name="Team BlueRidge Gerrit"
+if [ -f ~/.ssh/tbr_username ]
 then
 	echo "Welcome back to $name!"
 	echo "You've already been through setup. Lets continue!"
@@ -23,3 +23,4 @@ read branch
 git push "ssh://$un@gerrit.teamblueridge.com:29418/$projectname" "HEAD:refs/for/$branch"
 echo "If your push succeeded, please go to $url to view the status."
 echo "As an alternative to using this script, you could clone straight from Gerrit (IF you know what you're doing)"
+end
