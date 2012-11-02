@@ -17,10 +17,10 @@ fi
 un=`cat ~/.ssh/tbr_username` # Redefines $un as tbr_username file contents (from setup)
 echo "Your username is $un to reconfigure, run this command (w/o quotes) 'rm -rf ~/.ssh/tbr_username'"
 echo -n "Project name: "
-read projectname
+read project
 echo -n "Branch: "
 read branch
-git push "ssh://$un@gerrit.teamblueridge.com:29418/$projectname" "HEAD:refs/for/$branch"
+git push "ssh://$un@gerrit.teamblueridge.com:29418/$project" "HEAD:refs/for/$branch"
 echo "If your push succeeded, please go to $url to view the status."
 echo "As an alternative to using this script, you could clone straight from Gerrit (IF you know what you're doing)"
 end
