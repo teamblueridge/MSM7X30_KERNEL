@@ -8,10 +8,13 @@ Project Name: 'MSM7X30_KERNEL'
 Branch: ics/jb/jb-hack (choose one)
 
 #Toolchain
-You need the proper toolchain from AOSP to build this kernel. You can get it using 'git clone https://android.googlesource.com/platform/prebuilts/tools'
+You need the proper toolchain from AOSP to build this kernel. You can get it using 'git clone https://android.googlesource.com/platform/prebuilts/tools
 
 #Building
 The recommended way to build this repository is to use a script like the following.
     export PATH=<path to toolchain repo>/linux-x86/toolchain/arm-eabi-4.4.3/bin:$PATH
     make ARCH=arm <device>_defconfig
     make ARCH=arm CROSS_COMPILE=arm-eabi-
+
+#Support
+Builders may contact kalaker or simonsimons34 for help.
