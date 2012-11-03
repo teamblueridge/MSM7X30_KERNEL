@@ -762,12 +762,10 @@ static void intel_sdvo_get_dtd_from_mode(struct intel_sdvo_dtd *dtd,
 		((v_sync_len & 0x30) >> 4);
 
 	dtd->part2.dtd_flags = 0x18;
-	if (mode->flags & DRM_MODE_FLAG_INTERLACE)
-		dtd->part2.dtd_flags |= DTD_FLAG_INTERLACE;
 	if (mode->flags & DRM_MODE_FLAG_PHSYNC)
-		dtd->part2.dtd_flags |= DTD_FLAG_HSYNC_POSITIVE;
+		dtd->part2.dtd_flags |= 0x2;
 	if (mode->flags & DRM_MODE_FLAG_PVSYNC)
-		dtd->part2.dtd_flags |= DTD_FLAG_VSYNC_POSITIVE;
+		dtd->part2.dtd_flags |= 0x4;
 
 	dtd->part2.sdvo_flags = 0;
 	dtd->part2.v_sync_off_high = v_sync_offset & 0xc0;
@@ -801,11 +799,9 @@ static void intel_sdvo_get_mode_from_dtd(struct drm_display_mode * mode,
 	mode->clock = dtd->part1.clock * 10;
 
 	mode->flags &= ~(DRM_MODE_FLAG_PHSYNC | DRM_MODE_FLAG_PVSYNC);
-	if (dtd->part2.dtd_flags & DTD_FLAG_INTERLACE)
-		mode->flags |= DRM_MODE_FLAG_INTERLACE;
-	if (dtd->part2.dtd_flags & DTD_FLAG_HSYNC_POSITIVE)
+	if (dtd->part2.dtd_flags & 0x2)
 		mode->flags |= DRM_MODE_FLAG_PHSYNC;
-	if (dtd->part2.dtd_flags & DTD_FLAG_VSYNC_POSITIVE)
+	if (dtd->part2.dtd_flags & 0x4)
 		mode->flags |= DRM_MODE_FLAG_PVSYNC;
 }
 
@@ -1065,15 +1061,13 @@ static void intel_sdvo_mode_set(struct drm_encoder *encoder,
 
 	/* Set the SDVO control regs. */
 	if (INTEL_INFO(dev)->gen >= 4) {
-		sdvox = 0;
+		/* The real mode polarity is set by the SDVO commands, using
+		 * struct intel_sdvo_dtd. */
+		sdvox = SDVO_VSYNC_ACTIVE_HIGH | SDVO_HSYNC_ACTIVE_HIGH;
 		if (intel_sdvo->is_hdmi)
 			sdvox |= intel_sdvo->color_range;
 		if (INTEL_INFO(dev)->gen < 5)
 			sdvox |= SDVO_BORDER_ENABLE;
-		if (adjusted_mode->flags & DRM_MODE_FLAG_PVSYNC)
-			sdvox |= SDVO_VSYNC_ACTIVE_HIGH;
-		if (adjusted_mode->flags & DRM_MODE_FLAG_PHSYNC)
-			sdvox |= SDVO_HSYNC_ACTIVE_HIGH;
 	} else {
 		sdvox = I915_READ(intel_sdvo->sdvo_reg);
 		switch (intel_sdvo->sdvo_reg) {
