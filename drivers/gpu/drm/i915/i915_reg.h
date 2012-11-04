@@ -537,21 +537,6 @@
 
 #define GEN6_BSD_RNCID			0x12198
 
-#define GEN7_FF_THREAD_MODE		0x20a0
-#define   GEN7_FF_SCHED_MASK		0x0077070
-#define   GEN7_FF_TS_SCHED_HS1		(0x5<<16)
-#define   GEN7_FF_TS_SCHED_HS0		(0x3<<16)
-#define   GEN7_FF_TS_SCHED_LOAD_BALANCE	(0x1<<16)
-#define   GEN7_FF_TS_SCHED_HW		(0x0<<16) /* Default */
-#define   GEN7_FF_VS_SCHED_HS1		(0x5<<12)
-#define   GEN7_FF_VS_SCHED_HS0		(0x3<<12)
-#define   GEN7_FF_VS_SCHED_LOAD_BALANCE	(0x1<<12) /* Default */
-#define   GEN7_FF_VS_SCHED_HW		(0x0<<12)
-#define   GEN7_FF_DS_SCHED_HS1		(0x5<<4)
-#define   GEN7_FF_DS_SCHED_HS0		(0x3<<4)
-#define   GEN7_FF_DS_SCHED_LOAD_BALANCE	(0x1<<4)  /* Default */
-#define   GEN7_FF_DS_SCHED_HW		(0x0<<4)
-
 /*
  * Framebuffer compression (915+ only)
  */
@@ -2289,7 +2274,6 @@
 #define   PIPECONF_DISABLE	0
 #define   PIPECONF_DOUBLE_WIDE	(1<<30)
 #define   I965_PIPECONF_ACTIVE	(1<<30)
-#define   PIPECONF_FRAME_START_DELAY_MASK (3<<27)
 #define   PIPECONF_SINGLE_WIDE	0
 #define   PIPECONF_PIPE_UNLOCKED 0
 #define   PIPECONF_PIPE_LOCKED	(1<<25)
@@ -2560,17 +2544,9 @@
 #define _CURBBASE		0x700c4
 #define _CURBPOS			0x700c8
 
-#define _CURBCNTR_IVB		0x71080
-#define _CURBBASE_IVB		0x71084
-#define _CURBPOS_IVB		0x71088
-
 #define CURCNTR(pipe) _PIPE(pipe, _CURACNTR, _CURBCNTR)
 #define CURBASE(pipe) _PIPE(pipe, _CURABASE, _CURBBASE)
 #define CURPOS(pipe) _PIPE(pipe, _CURAPOS, _CURBPOS)
-
-#define CURCNTR_IVB(pipe) _PIPE(pipe, _CURACNTR, _CURBCNTR_IVB)
-#define CURBASE_IVB(pipe) _PIPE(pipe, _CURABASE, _CURBBASE_IVB)
-#define CURPOS_IVB(pipe) _PIPE(pipe, _CURAPOS, _CURBPOS_IVB)
 
 /* Display A control */
 #define _DSPACNTR                0x70180
@@ -3157,7 +3133,6 @@
 #define  FDI_LINK_TRAIN_NONE_IVB            (3<<8)
 
 /* both Tx and Rx */
-#define  FDI_COMPOSITE_SYNC		(1<<11)
 #define  FDI_LINK_TRAIN_AUTO		(1<<10)
 #define  FDI_SCRAMBLING_ENABLE          (0<<7)
 #define  FDI_SCRAMBLING_DISABLE         (1<<7)
@@ -3385,10 +3360,6 @@
 #define  FORCEWAKE_ACK				0x130090
 
 #define  GT_FIFO_FREE_ENTRIES			0x120008
-
-#define GEN6_UCGCTL2				0x9404
-# define GEN6_RCPBUNIT_CLOCK_GATE_DISABLE		(1 << 12)
-# define GEN6_RCCUNIT_CLOCK_GATE_DISABLE		(1 << 11)
 
 #define GEN6_RPNSWREQ				0xA008
 #define   GEN6_TURBO_DISABLE			(1<<31)
