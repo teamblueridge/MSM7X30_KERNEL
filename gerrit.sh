@@ -33,11 +33,11 @@ read -p "Branch name (case-sensitive): " branch
 fi
 un=`cat ~/.ssh/tbr_username`
 while true; do
-read -p "Have you already committed your changes [y/n]? " yn
+read -p "Have you already committed your changes [Y/N]? " yn
 case $yn in
 [Yy]* ) echo "Good, let's continue"; break;;
 [Nn]* ) echo "Please go and commit your changes ('git commit -a')."; exit;;
-* ) echo "Please answer Y(es) or N(o).";;
+    * ) echo "Please answer Y(es) or N(o).";;
 esac
 done
 echo "Push information:"
@@ -45,11 +45,11 @@ echo "Your username: $un"
 echo "Project: $project"
 echo "Branch: $branch"
 while true; do
-read -p "Are you sure you wish to push to Gerrit [y/n]? " yn
+read -p "Are you sure you wish to push to Gerrit [Y/N]? " yn
 case $yn in
 [Yy]* ) git push "ssh://$un@gerrit.teamblueridge.com:29418/$project" "HEAD:refs/for/$branch"; break;;
 [Nn]* ) echo "Goodbye."; exit;;
-* ) echo "Please answer Y(es) or N(o).";;
+    * ) echo "Please answer Y(es) or N(o).";;
 esac
 done
 exit
