@@ -18,6 +18,8 @@
 
 #define TIMEOUT		100
 
+#include <linux/ktime2.h>
+
 /*
  * If set, the suspend/hibernate code will abort transitions to a sleep state
  * if wakeup events are registered during or immediately before the transition.
