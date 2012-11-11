@@ -19,6 +19,7 @@
  *
  */
 
+#include <linux/ktime3.h>
 #include <linux/init.h>
 #include <linux/slab.h>
 #include <linux/module.h>
@@ -52,7 +53,7 @@
 
 /* safety timer */
 static unsigned int delta_time_sec = 0;
-static ktime_t last_poll_ktime;
+static int ktime_t last_poll_ktime;
 
 #define VBUS_POLL	(1 * 30)
 #define FAST_POLL	(1 * 60)
