@@ -19,6 +19,7 @@
  *
  */
 
+#include <linux/ktime3.h>
 #include <linux/init.h>
 #include <linux/slab.h>
 #include <linux/module.h>
