@@ -20,7 +20,6 @@
 
 #include <linux/types.h>
 #include <asm/setup.h>
-#include <linux/input.h>
 #include <linux/usb.h>
 #include <linux/leds-pmic8058.h>
 #include <linux/clkdev.h>
@@ -32,6 +31,7 @@
 #endif
 #include <mach/msm_bus.h>
 
+#define PANEL_NAME_MAX_LEN 50
 struct msm_camera_io_ext {
 	uint32_t mdcphy;
 	uint32_t mdcsz;
@@ -445,6 +445,8 @@ enum msm_mdp_hw_revision {
 	MDP_REV_40,
 	MDP_REV_41,
 	MDP_REV_42,
+	MDP_REV_43,
+	MDP_REV_44,
 };
 
 struct msm_panel_common_pdata {
@@ -483,6 +485,7 @@ struct msm_panel_common_pdata {
 	int fpga_3d_config_addr;
 	struct gamma_curvy *abl_gamma_tbl;
 #endif
+	char cont_splash_enabled;
 };
 
 struct lcdc_platform_data {
@@ -548,6 +551,8 @@ struct msm_fb_platform_data {
 	uint32_t width;
 	uint32_t height;
 	bool     is_3d_panel;
+        char prim_panel_name[PANEL_NAME_MAX_LEN];
+        char ext_panel_name[PANEL_NAME_MAX_LEN];
 };
 
 #ifdef CONFIG_FB_MSM8960
