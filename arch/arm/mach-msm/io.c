@@ -27,7 +27,7 @@
 #include <mach/msm_iomap.h>
 #include <asm/mach/map.h>
 
-#include <mach/board.h>
+#include <mach/caf_board.h>
 
 #define MSM_CHIP_DEVICE(name, chip) { \
 		.virtual = (unsigned long) MSM_##name##_BASE, \
