@@ -8,6 +8,7 @@
 #include <asm/atomic.h>
 #include <linux/jiffies.h>
 #include "power.h"
+#include <linux/ktime2.h>
 
 /*
  *	control - Report/change current runtime PM setting of the device
