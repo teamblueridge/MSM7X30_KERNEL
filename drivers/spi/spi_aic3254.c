@@ -26,6 +26,7 @@
 #include <linux/clk.h>
 #include <linux/wakelock.h>
 #include <linux/rtc.h>
+#include <linux/ktime2.h>
 
 static struct spi_device *codec_dev;
 static struct mutex lock;
