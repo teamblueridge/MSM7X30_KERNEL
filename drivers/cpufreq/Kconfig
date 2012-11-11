@@ -120,6 +120,13 @@ config CPU_FREQ_DEFAULT_GOV_SMARTASS2
 	select CPU_FREQ_GOV_SMARTASS2
 	help
 	  Use the CPUFreq governor 'Smartass2' as default.
+
+config CPU_FREQ_DEFAULT_GOV_LIONHEART
+	bool "Lionheart"
+	select CPU_FREQ_GOV_LIONHEART
+	select CPU_FREQ_GOV_CONSERVATIVE
+	help
+	  Use the CPUFreq governor 'Lionheart' as default.
 endchoice
 
 config CPU_FREQ_GOV_PERFORMANCE
@@ -244,11 +251,12 @@ config CPU_FREQ_GOV_SMARTASS
 	  'smartass' - a "smart" optimized governor for the hero!
 
 	  If in doubt, say N.
+
 config CPU_FREQ_GOV_LIONHEART
 	tristate "'Lionheart' cpufreq governor"
 	depends on CPU_FREQ
 	help 
-	   'Use Lionheart'
+	   Lionheart is a tweaked conservative with performance in mind.
 
 config CPU_FREQ_MIN_TICKS
 	int "Ticks between governor polling interval."
