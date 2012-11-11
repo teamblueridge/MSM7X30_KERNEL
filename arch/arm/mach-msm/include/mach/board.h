@@ -445,6 +445,8 @@ enum msm_mdp_hw_revision {
 	MDP_REV_40,
 	MDP_REV_41,
 	MDP_REV_42,
+	MDP_REV_43,
+	MDP_REV_44,
 };
 
 struct msm_panel_common_pdata {
@@ -483,6 +485,7 @@ struct msm_panel_common_pdata {
 	int fpga_3d_config_addr;
 	struct gamma_curvy *abl_gamma_tbl;
 #endif
+	char cont_splash_enabled;
 };
 
 struct lcdc_platform_data {
