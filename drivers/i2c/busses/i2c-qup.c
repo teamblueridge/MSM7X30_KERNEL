@@ -1253,7 +1253,7 @@ qup_i2c_probe(struct platform_device *pdev)
 	dev->pdata = pdata;
 	dev->clk_ctl = 0;
 	dev->pos = 0;
-	dev->share_uart = pdata->share_uart_flag;
+//	dev->share_uart = pdata->share_uart_flag;
 
 	/*
 	 * We use num_irqs to also indicate if we got 3 interrupts or just 1.

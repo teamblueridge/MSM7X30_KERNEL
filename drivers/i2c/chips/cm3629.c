@@ -2170,7 +2170,7 @@ static int cm3629_probe(struct i2c_client *client,
 	lpi->irq = irq;
 	pr_info("[PS][CM3629]%s: client->irq %d, irq %d!!\n",
 			__func__, client->irq, irq);
-	lpi->mfg_mode = board_mfg_mode();
+//	lpi->mfg_mode = board_mfg_mode();
 
 	i2c_set_clientdata(client, lpi);
 	lpi->model = pdata->model;
