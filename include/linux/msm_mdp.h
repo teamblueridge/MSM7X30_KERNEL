@@ -54,6 +54,7 @@
 						struct msmfb_mixer_info_req)
 #define MSMFB_OVERLAY_PLAY_WAIT _IOWR(MSMFB_IOCTL_MAGIC, 149, \
 						struct msmfb_overlay_data)
+#define MDP_CSC_FLAG_YUV_OUT	0x4
 
 #define MSMFB_WRITEBACK_INIT _IO(MSMFB_IOCTL_MAGIC, 150)
 
@@ -180,6 +181,18 @@ struct mdp_rect {
 	uint32_t y;
 	uint32_t w;
 	uint32_t h;
+};
+
+struct mdp_bl_scale_data {
+	uint32_t min_lvl;
+	uint32_t scale;
+};
+
+struct mdp_histogram_start_req {
+	uint32_t block;
+	uint8_t frame_cnt;
+	uint8_t bit_mask;
+	uint8_t num_bins;
 };
 
 struct mdp_img {
@@ -339,6 +352,7 @@ enum {
 	MDP_BLOCK_RESERVED = 0,
 	MDP_BLOCK_OVERLAY_0,
 	MDP_BLOCK_OVERLAY_1,
+	MDP_BLOCK_OVERLAY_2,
 	MDP_BLOCK_VG_1,
 	MDP_BLOCK_VG_2,
 	MDP_BLOCK_RGB_1,
