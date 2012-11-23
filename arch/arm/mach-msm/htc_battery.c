@@ -27,7 +27,7 @@
 #include <mach/board.h>
 #include <asm/mach-types.h>
 #include <mach/board_htc.h>
-#include <mach/msm_fb-7x30.h> /*to register display notifier */
+#include <mach/msm_fb.h> /*to register display notifier */
 #include <mach/htc_battery.h>
 #include <linux/rtc.h>
 #include <linux/workqueue.h>
@@ -639,8 +639,14 @@ static int htc_cable_status_update(int status)
 	 * if receives AC notification */
 	last_source = htc_batt_info.rep.charging_source;
 	if (status == CHARGER_USB && g_usb_online == 0) {
+#ifdef CONFIG_FORCE_FAST_CHARGE
+		BATT_LOG("cable USB forced fast charge");
+		htc_set_smem_cable_type(CHARGER_AC);
+		htc_batt_info.rep.charging_source = CHARGER_AC;
+#else
 		htc_set_smem_cable_type(CHARGER_USB);
 		htc_batt_info.rep.charging_source = CHARGER_USB;
+#endif
 	} else {
 		htc_set_smem_cable_type(status);
 		htc_batt_info.rep.charging_source  = status;
@@ -1387,9 +1393,11 @@ static int htc_rpc_charger_switch(unsigned enable)
 			if (ret < 0)
 				BATT_ERR("%s: msm_rpc_call failed (%d)!", __func__, ret);
 		}
+#if 0
 #if defined(CONFIG_BATTERY_DS2746)
 		if (htc_batt_info.guage_driver == GUAGE_DS2746)
 			ds2746_charger_switch(enable);
+#endif
 #endif
 		power_supply_changed(&htc_power_supplies[CHARGER_BATTERY]);
 	}

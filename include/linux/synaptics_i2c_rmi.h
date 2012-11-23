@@ -122,8 +122,6 @@ struct synaptics_i2c_rmi_platform_data {
 	uint8_t support_htc_event;
 	uint8_t mfg_flag;
 	uint8_t customer_register[CUS_REG_SIZE];
-	uint8_t segmentation_bef_unlock;
-	uint8_t i2c_err_handler_en;
 };
 
 struct page_description {

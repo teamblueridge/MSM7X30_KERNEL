@@ -1669,14 +1669,6 @@ void Reset_Yushan(void)
 {
 	uint8_t	bSpiData;
 	Yushan_Init_Dxo_Struct_t	sDxoStruct;
-        uint8_t bPdpMode = 0, bDppMode = 0, bDopMode = 0;
-        Yushan_ImageChar_t sImageChar;
-        Yushan_GainsExpTime_t sGainsExpTime;
-        Yushan_DXO_DPP_Tuning_t sDxoDppTuning;
-        Yushan_DXO_PDP_Tuning_t sDxoPdpTuning;
-        Yushan_DXO_DOP_Tuning_t sDxoDopTuning;
-        uint8_t bStatus;
-
 	sDxoStruct.pDxoPdpRamImage[0] = (uint8_t *)yushan_regs.pdpcode;
 	sDxoStruct.pDxoDppRamImage[0] = (uint8_t *)yushan_regs.dppcode;
 	sDxoStruct.pDxoDopRamImage[0] = (uint8_t *)yushan_regs.dopcode;
@@ -1697,7 +1689,7 @@ void Reset_Yushan(void)
 	sDxoStruct.uwBaseAddrPdpMicroCode[1] = yushan_regs.pdpclib->addr;
 	sDxoStruct.uwBaseAddrDppMicroCode[1] = yushan_regs.dppclib->addr;
 	sDxoStruct.uwBaseAddrDopMicroCode[1] = yushan_regs.dopclib->addr;
-	pr_err("[CAM] %s++\n", __func__);
+	pr_err("[CAM] %s\n", __func__);
 	/*sensor_streaming_off();*/
 	Yushan_Assert_Reset(0x001F0F10, RESET_MODULE);
 	bSpiData = 1;
@@ -1707,62 +1699,6 @@ void Reset_Yushan(void)
 	Yushan_DXO_Sync_Reset_Dereset(bSpiData);
 	Yushan_Init_Dxo(&sDxoStruct, 1);
 	msleep(10);
-        /* Updating DXO */
-        sImageChar.bImageOrientation = 3;/* flip */
-        sImageChar.uwXAddrStart = 0;
-        sImageChar.uwYAddrStart = 0;
-        sImageChar.uwXAddrEnd = 2608 - 1;
-        sImageChar.uwYAddrEnd = 1960 - 1;
-        sImageChar.uwXEvenInc = 1;
-        sImageChar.uwXOddInc = 1;
-        sImageChar.uwYEvenInc = 1;
-        sImageChar.uwYOddInc = 1;
-        sImageChar.bBinning = 0x11;
-        sGainsExpTime.uwAnalogGainCodeGR = 455;//0x20;/* 0x0 10x=>140;1x=>20 */
-        sGainsExpTime.uwAnalogGainCodeR = 455;//0x20;
-        sGainsExpTime.uwAnalogGainCodeB = 455;//0x20;
-        sGainsExpTime.uwPreDigGainGR = 0x100;
-        sGainsExpTime.uwPreDigGainR = 0x100;
-        sGainsExpTime.uwPreDigGainB = 0x100;
-        sGainsExpTime.uwExposureTime = 2047;//0x200;
-        sGainsExpTime.bRedGreenRatio = 103;//0x40;
-        sGainsExpTime.bBlueGreenRatio = 127;//0x40;
-        
-        sDxoDppTuning.bTemporalSmoothing=0x63;
-        sDxoDppTuning.uwFlashPreflashRating = 0;
-        sDxoDppTuning.bFocalInfo = 0;
- 
-        sDxoPdpTuning.bDeadPixelCorrectionLowGain = 0x80;
-        sDxoPdpTuning.bDeadPixelCorrectionMedGain = 0x80;
-        sDxoPdpTuning.bDeadPixelCorrectionHiGain = 0x80;
- 
-        sDxoDopTuning.bEstimationMode = 1;
-        sDxoDopTuning.bSharpness = 0x70; //0x60;
-        sDxoDopTuning.bDenoisingLowGain = 0x80;//0x60;/* 0xFF for de-noise verify, original:0x1 */
-        sDxoDopTuning.bDenoisingMedGain = 0x80;
-        sDxoDopTuning.bDenoisingHiGain = 0x90;
-        sDxoDopTuning.bNoiseVsDetailsLowGain = 0x85;//0xA0;/* Noise v.s. Texture by Graidient. Higher value cause sharp image */
-        sDxoDopTuning.bNoiseVsDetailsMedGain = 0x80;
-        sDxoDopTuning.bNoiseVsDetailsHiGain = 0x80;
-        sDxoDopTuning.bTemporalSmoothing = 0x26;/* Transistion btw three mode of sharpess within diff frames */
- 
-        Yushan_Update_ImageChar(&sImageChar);
-        Yushan_Update_SensorParameters(&sGainsExpTime);
-        Yushan_Update_DxoDpp_TuningParameters(&sDxoDppTuning);
-        Yushan_Update_DxoDop_TuningParameters(&sDxoDopTuning);
-        Yushan_Update_DxoPdp_TuningParameters(&sDxoPdpTuning);
-        bPdpMode = 1; bDppMode = 3; bDopMode = 1;
-        bStatus = Yushan_Update_Commit(bPdpMode, bDppMode, bDopMode);
-        pr_info("[CAM] Yushan_common_init Yushan_Update_Commit=%d\n", bStatus);
- 
-        if (bStatus == 1)
-                pr_info("[CAM] DXO Commit Done\n");
-        else {
-                pr_err("[CAM] DXO Commit FAILED\n");
-                /* return -1;*/
-        }       
-
-        pr_err("[CAM] %s--\n", __func__);
 	/*Yushan_sensor_open_init();*/
 	/*Yushan_ContextUpdate_Wrapper(&sYushanFullContextConfig);*/
 	/*sensor_streaming_on();*/
@@ -1861,7 +1797,7 @@ uint8_t Yushan_parse_interrupt(void)
 
 			case EVENT_CSI2TX_SP_ERR :
 				pr_err("[CAM] %s:[ERR]EVENT_CSI2TX_SP_ERR\n", __func__);
-				interrupt_type |= RAWCHIP_INT_TYPE_ERROR;
+				interrupt_type |= RAWCHIP_INT_TYPE_ERROR_FATAL;
 				break;
 
 			case EVENT_CSI2TX_LP_ERR :
@@ -3862,7 +3798,7 @@ int Yushan_sensor_open_init(void)
 		sInitStruct.sFrameFormat[1].bActiveDatatype = 1;
 		sInitStruct.sFrameFormat[1].bSelectStillVfMode = YUSHAN_FRAME_FORMAT_VF_MODE;
 		/* For the wordcount 0 and type of Raw8/10 in active data. */
-		sInitStruct.sFrameFormat[2].bDatatype = 0x2a;
+		sInitStruct.sFrameFormat[4].bDatatype = 0x2a;
 	} else { /* if (bPixelFormat ==RAW10) */
 		CDBG("[CAM] bPixelFormat==RAW10");
 		sInitStruct.sFrameFormat[0].uwWordcount = (uwHSize*10)/8;	 /* For RAW10 this value should be uwHSize*10/8 */
@@ -3872,19 +3808,32 @@ int Yushan_sensor_open_init(void)
 		sInitStruct.sFrameFormat[1].bActiveDatatype = 1;
 		sInitStruct.sFrameFormat[1].bSelectStillVfMode = YUSHAN_FRAME_FORMAT_VF_MODE;
 		/* For the wordcount 0 and type of Raw8/10 in active data. */
-		sInitStruct.sFrameFormat[2].bDatatype = 0x2b;
+		sInitStruct.sFrameFormat[4].bDatatype = 0x2b;
 	}
 	/* Overwritting Data Type for 10 to 8 Pixel format */
 	if (bPixelFormat == RAW10_8) {
 		sInitStruct.sFrameFormat[0].bDatatype = 0x30;
 		sInitStruct.sFrameFormat[1].bDatatype = 0x30;
-		sInitStruct.sFrameFormat[2].bDatatype = 0x30;
+		sInitStruct.sFrameFormat[4].bDatatype = 0x30;
 	}
 	sInitStruct.sFrameFormat[0].bActiveDatatype = 1;
 	sInitStruct.sFrameFormat[0].bSelectStillVfMode = YUSHAN_FRAME_FORMAT_STILL_MODE;
-	sInitStruct.sFrameFormat[2].uwWordcount = 3260; /* One wordcount to be 0 (CSI2_RX will flush last line in InterFrame) */
-	sInitStruct.sFrameFormat[2].bActiveDatatype = 1; /* for fix of Bug#51 */
+
+	/* add frame formats for embedded lines for both modes*/
+	sInitStruct.sFrameFormat[2].bDatatype = 0x12;
+	sInitStruct.sFrameFormat[2].uwWordcount = sInitStruct.sFrameFormat[0].uwWordcount;
+	sInitStruct.sFrameFormat[2].bActiveDatatype = 0x12; /* Status lines datatype */
 	sInitStruct.sFrameFormat[2].bSelectStillVfMode = YUSHAN_FRAME_FORMAT_NORMAL_MODE;
+
+	sInitStruct.sFrameFormat[3].bDatatype = 0x12;
+	sInitStruct.sFrameFormat[3].uwWordcount = sInitStruct.sFrameFormat[1].uwWordcount;
+	sInitStruct.sFrameFormat[3].bActiveDatatype = 0x12; /* Status lines datatype */
+	sInitStruct.sFrameFormat[3].bSelectStillVfMode = YUSHAN_FRAME_FORMAT_NORMAL_MODE;
+
+	/* Frame format with WC=0 */
+	sInitStruct.sFrameFormat[4].uwWordcount = 0; /* One wordcount to be 0 (CSI2_RX will flush last line in InterFrame) */
+	sInitStruct.sFrameFormat[4].bActiveDatatype = 1; /* for fix of Bug#51 */
+	sInitStruct.sFrameFormat[4].bSelectStillVfMode = YUSHAN_FRAME_FORMAT_NORMAL_MODE;
 
 	sGainsExpTime.uwAnalogGainCodeGR = 0x20;/* 0x0 10x=>140;1x=>20 */
 	sGainsExpTime.uwAnalogGainCodeR = 0x20;

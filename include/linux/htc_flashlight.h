@@ -28,6 +28,11 @@
 #define FLASHLIGHT_FLASH 2
 #define FLASHLIGHT_NUM   3
 
+enum flashlight_chip{
+	AAT1271 = 0,
+	AAT3177,
+	AAT1277,
+};
 
 enum flashlight_mode_flags {
 	FL_MODE_OFF = 0,
@@ -49,20 +54,38 @@ enum flashlight_mode_flags {
 	FL_MODE_FLASH_LEVEL6,
 	FL_MODE_FLASH_LEVEL7,
 //HTC_END
+#ifdef CONFIG_ARCH_MSM_FLASHLIGHT_DEATH_RAY
+	FL_MODE_DEATH_RAY,
+#endif
 
 };
-#if defined(CONFIG_FLASHLIGHT_AAT1271) || defined(CONFIG_LEDS_MAX8957_FLASH)
-struct flashlight_platform_data {
+/*
+#ifdef CONFIG_LEDS_MAX8957_FLASH
+	struct flashlight_platform_data {
 	void (*gpio_init) (void);
 	uint32_t torch;
 	uint32_t flash;
 	uint32_t flash_duration_ms;
-	uint8_t led_count; /* 0: 1 LED, 1: 2 LED */
+	uint8_t led_count;
 
 };
 int aat1271_flashlight_control(int mode);
 #endif
-
+*/
+#if (defined(CONFIG_ARCH_MSM_FLASHLIGHT)) && !defined(CONFIG_FLASHLIGHT_AAT1271)
+struct flashlight_platform_data {
+	void (*gpio_init) (void);
+	uint32_t torch;
+	uint32_t flash;
+	uint32_t flash_adj;
+	uint32_t torch_set1;
+	uint32_t torch_set2;
+	uint32_t flash_duration_ms;
+	uint8_t led_count; /* 0: 1 LED, 1: 2 LED */
+	uint32_t chip_model;
+};
+int aat1271_flashlight_control(int mode);
+#endif
 
 #ifdef CONFIG_FLASHLIGHT_AAT1277
 struct flashlight_platform_data {

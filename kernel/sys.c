@@ -336,9 +336,9 @@ void kernel_restart(char *cmd)
 	kernel_restart_prepare(cmd);
 	disable_nonboot_cpus();
 	if (!cmd)
-		printk(KERN_EMERG "[K] %s(parent:%s): Restarting system.\n", current->comm, current->parent->comm);
+		printk(KERN_EMERG "%s(parent:%s): Restarting system.\n", current->comm, current->parent->comm);
 	else
-		printk(KERN_EMERG "[K] %s(parent:%s): Restarting system with command '%s'.\n", current->comm, current->parent->comm, cmd);
+		printk(KERN_EMERG "%s(parent:%s): Restarting system with command '%s'.\n", current->comm, current->parent->comm, cmd);
 	kmsg_dump(KMSG_DUMP_RESTART);
 	machine_restart(cmd);
 }
@@ -361,7 +361,7 @@ void kernel_halt(void)
 {
 	kernel_shutdown_prepare(SYSTEM_HALT);
 	syscore_shutdown();
-	printk(KERN_EMERG "[K] System halted.\n");
+	printk(KERN_EMERG "System halted.\n");
 	kmsg_dump(KMSG_DUMP_HALT);
 	machine_halt();
 }
@@ -380,7 +380,7 @@ void kernel_power_off(void)
 		pm_power_off_prepare();
 	disable_nonboot_cpus();
 	syscore_shutdown();
-	printk(KERN_EMERG "[K] Power down.\n");
+	printk(KERN_EMERG "Power down.\n");
 	kmsg_dump(KMSG_DUMP_POWEROFF);
 	machine_power_off();
 }
@@ -401,24 +401,9 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
 {
 	char buffer[256];
 	int ret = 0;
-	int res = 0;
-	unsigned int len;
-	char path[64];
-	struct task_struct *task = current;
-	struct mm_struct *mm = get_task_mm(task);
-
-	len = mm->arg_end - mm->arg_start;
-	if (len > PAGE_SIZE)
-		len = PAGE_SIZE;
-
-	res = access_process_vm(task, mm->arg_start, path, len, 0);
-	mmput(mm);
-
-	if (!(!strcmp("/system/bin/reboot", path) && cmd == LINUX_REBOOT_CMD_RESTART2)) {
-		/* We only trust the superuser with rebooting the system. */
-		if (!capable(CAP_SYS_BOOT))
-			return -EPERM;
-	}
+	/* We only trust the superuser with rebooting the system. */
+	if (!capable(CAP_SYS_BOOT))
+		return -EPERM;
 
 	/* For safety, we require "magic" arguments. */
 	if (magic1 != LINUX_REBOOT_MAGIC1 ||
@@ -618,6 +603,7 @@ static int set_user(struct cred *new)
 
 	free_uid(new->user);
 	new->user = new_user;
+	sched_autogroup_create_attach(current);
 	return 0;
 }
 
@@ -1127,7 +1113,7 @@ out:
 	write_unlock_irq(&tasklist_lock);
 	if (err > 0) {
 		proc_sid_connector(group_leader);
-		sched_autogroup_create_attach(group_leader);
+		
 	}
 	return err;
 }
@@ -1147,15 +1133,16 @@ DECLARE_RWSEM(uts_sem);
  * Work around broken programs that cannot handle "Linux 3.0".
  * Instead we map 3.x to 2.6.40+x, so e.g. 3.0 would be 2.6.40
  */
-static int override_release(char __user *release, int len)
+static int override_release(char __user *release, size_t len)
 {
 	int ret = 0;
-	char buf[65];
 
 	if (current->personality & UNAME26) {
-		char *rest = UTS_RELEASE;
+		const char *rest = UTS_RELEASE;
+		char buf[65] = { 0 };
 		int ndots = 0;
 		unsigned v;
+		size_t copy;
 
 		while (*rest) {
 			if (*rest == '.' && ++ndots >= 3)
@@ -1165,8 +1152,9 @@ static int override_release(char __user *release, int len)
 			rest++;
 		}
 		v = ((LINUX_VERSION_CODE >> 8) & 0xff) + 40;
-		snprintf(buf, len, "2.6.%u%s", v, rest);
-		ret = copy_to_user(release, buf, len);
+		copy = clamp_t(size_t, len, 1, sizeof(buf));
+		copy = scnprintf(buf, copy, "2.6.%u%s", v, rest);
+		ret = copy_to_user(release, buf, copy + 1);
 	}
 	return ret;
 }
