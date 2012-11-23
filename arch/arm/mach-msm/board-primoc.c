@@ -1249,8 +1249,8 @@ struct resource msm_camera_resources[] = {
 };
 
 struct msm_camera_device_platform_data camera_device_data = {
-  .camera_gpio_on  = config_camera_on_gpios,
-  .camera_gpio_off = config_camera_off_gpios,
+  .camera_gpio_on  = (void *)config_camera_on_gpios,
+  .camera_gpio_off = (void *)config_camera_off_gpios,
   .ioext.mdcphy = MSM_MDC_PHYS,
   .ioext.mdcsz  = MSM_MDC_SIZE,
   .ioext.appphy = MSM_CLK_CTL_PHYS,
