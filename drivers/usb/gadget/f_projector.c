@@ -28,11 +28,6 @@
 #include <linux/wakelock.h>
 #include <linux/htc_mode_server.h>
 #include <linux/random.h>
-
-#ifdef DUMMY_DISPLAY_MODE
-#include "f_projector_debug.h"
-#endif
-
 #ifdef DBG
 #undef DBG
 #endif
@@ -374,7 +369,7 @@ static void projector_send_Key_event(struct projector_dev *dev,
 	input_sync(kdev);
 }
 
-#if defined(CONFIG_ARCH_MSM7X30) || defined(CONFIG_ARCH_MSM8X60)
+#ifdef CONFIG_ARCH_MSM7X30
 extern char *get_fb_addr(void);
 #endif
 
@@ -382,18 +377,11 @@ static void send_fb(struct projector_dev *dev)
 {
 
 	struct usb_request *req;
+	char *frame;
 	int xfer;
 	int count = dev->framesize;
-#ifdef DUMMY_DISPLAY_MODE
-	unsigned short *frame;
-#else
-	char *frame;
-#endif
 
-
-#ifdef DUMMY_DISPLAY_MODE
-	frame = test_frame;
-#elif defined(CONFIG_ARCH_MSM7X30) || defined(CONFIG_ARCH_MSM8X60)
+#ifdef CONFIG_ARCH_MSM7X30
 	frame = get_fb_addr();
 #else
     if (msmfb_get_fb_area())
@@ -416,13 +404,8 @@ static void send_fb(struct projector_dev *dev)
 					__func__, req);
 				break;
 			}
-
 			count -= xfer;
-#ifdef DUMMY_DISPLAY_MODE
-			frame += xfer/2;
-#else
 			frame += xfer;
-#endif
 		} else {
 			printk(KERN_ERR "send_fb: no req to send\n");
 			break;
@@ -433,20 +416,11 @@ static void send_fb(struct projector_dev *dev)
 static void send_fb2(struct projector_dev *dev)
 {
 	struct usb_request *req;
-	int xfer;
-
-#ifdef DUMMY_DISPLAY_MODE
-	unsigned short *frame;
-	int count = dev->framesize;
-#else
 	char *frame;
-	int count = dev->htcmode_proto->server_info.width *
-				dev->htcmode_proto->server_info.height * (BITSPIXEL / 8);
-#endif
+	int xfer;
+	int count = dev->framesize;
 
-#ifdef DUMMY_DISPLAY_MODE
-	frame = test_frame;
-#elif defined(CONFIG_ARCH_MSM7X30) || defined(CONFIG_ARCH_MSM8X60)
+#ifdef CONFIG_ARCH_MSM7X30
 	frame = get_fb_addr();
 #else
     if (msmfb_get_fb_area())
@@ -477,11 +451,7 @@ static void send_fb2(struct projector_dev *dev)
 				break;
 			}
 			count -= xfer;
-#ifdef DUMMY_DISPLAY_MODE
-			frame += xfer/2;
-#else
 			frame += xfer;
-#endif
 		} else {
 			printk(KERN_ERR "send_fb: no req to send\n");
 			break;
@@ -509,6 +479,13 @@ static void send_info(struct projector_dev *dev)
 		req->length = 20;
 		memcpy(req->buf, "okay", 4);
 		memcpy(req->buf + 4, &dev->bitsPixel, 4);
+		#if defined(CONFIG_MACH_PARADISE)
+		if (machine_is_paradise()) {
+			ctxt->framesize = 320 * 480 * 2;
+			printk(KERN_INFO "send_info: framesize %d\n",
+				ctxt->framesize);
+		}
+		#endif
 		memcpy(req->buf + 8, &dev->framesize, 4);
 		memcpy(req->buf + 12, &dev->width, 4);
 		memcpy(req->buf + 16, &dev->height, 4);
@@ -540,6 +517,7 @@ static void send_server_info(struct projector_dev *dev)
 	}
 }
 
+
 static void send_server_nonce(struct projector_dev *dev)
 {
 	struct usb_request *req;
@@ -561,6 +539,8 @@ static void send_server_nonce(struct projector_dev *dev)
 		printk(KERN_INFO "%s: no req to send\n", __func__);
 	}
 }
+
+
 
 struct size rotate(struct size v)
 {
@@ -607,14 +587,9 @@ static struct size get_projection_size(struct projector_dev *dev, struct msm_cli
 			ret.w = (client.h * server.w) / server.h;
 			ret.h = client.h;
 		}
-
-		ret.w = round_down(ret.w, 32);
 	} else {
 		ret = client;
 	}
-
-	printk(KERN_INFO "projector size(w=%d, h=%d)\n", ret.w, ret.h);
-
 	return ret;
 }
 
@@ -628,14 +603,18 @@ static void projector_get_msmfb(struct projector_dev *dev)
 	dev->bitsPixel = BITSPIXEL;
 	dev->width = fb_info.xres;
 	dev->height = fb_info.yres;
-#if defined(CONFIG_ARCH_MSM7X30) || defined(CONFIG_ARCH_MSM8X60)
+#ifdef CONFIG_ARCH_MSM7X30
 	dev->fbaddr = get_fb_addr();
+	printk(KERN_INFO "projector: width %d, height %d, fb %p\n",
+		fb_info.xres, fb_info.yres, dev->fbaddr);
 #else
 	dev->fbaddr = fb_info.fb_addr;
+	printk(KERN_INFO "projector: width %d, height %d\n",
+		fb_info.xres, fb_info.yres);
 #endif
 	dev->framesize = dev->width * dev->height * (dev->bitsPixel / 8);
-	printk(KERN_INFO "projector: width %d, height %d framesize %d, %p\n",
-		   fb_info.xres, fb_info.yres, dev->framesize, dev->fbaddr);
+	printk(KERN_INFO "projector: width %d, height %d %d\n",
+		   fb_info.xres, fb_info.yres, dev->framesize);
 }
 
 /*
@@ -738,21 +717,17 @@ static void projector_complete_out(struct usb_ep *ep, struct usb_request *req)
 		mouse_data[0] = *((int *)(req->buf));
 
 		if (!strncmp("init", data, 4)) {
+			if (!dev->init_done) {
+				projector_get_msmfb(dev);
+				dev->init_done = 1;
 
-			dev->init_done = 1;
-			dev->bitsPixel = BITSPIXEL;
-			dev->width = DEFAULT_PROJ_WIDTH;
-			dev->height = DEFAULT_PROJ_HEIGHT;
-			dev->framesize = dev->width * dev->height * (BITSPIXEL / 8);
-
+				dev->width = DEFAULT_PROJ_WIDTH;
+				dev->height = DEFAULT_PROJ_HEIGHT;
+				dev->framesize = dev->width * dev->height * (BITSPIXEL / 8);
+			}
 			send_info(dev);
 			/* system wake code */
 			projector_send_Key_event(dev, 0);
-
-			atomic_set( &htc_mode_status, HTC_MODE_RUNNING);
-			htc_mode_info("init current htc_mode_status = %d\n",
-			    atomic_read(&htc_mode_status));
-			schedule_work(&dev->htcmode_notifier_work);
 		} else if (*data == ' ') {
 			send_fb(dev);
 			dev->frame_count++;
@@ -1168,7 +1143,7 @@ static int projector_bind_config(struct usb_configuration *c,
 	dev->bitsPixel = BITSPIXEL;
 	dev->width = fb_info.xres;
 	dev->height = fb_info.yres;
-#if defined(CONFIG_ARCH_MSM7X30) || defined(CONFIG_ARCH_MSM8X60)
+#ifdef CONFIG_ARCH_MSM7X30
 	dev->fbaddr = get_fb_addr();
 #else
 	dev->fbaddr = fb_info.fb_addr;
@@ -1202,9 +1177,6 @@ static int projector_bind_config(struct usb_configuration *c,
 	dev->frame_count = 0;
 	dev->is_htcmode = 0;
 	dev->htcmode_proto = config;
-	dev->htcmode_proto->server_info.height = DEFAULT_PROJ_HEIGHT;
-	dev->htcmode_proto->server_info.width = DEFAULT_PROJ_WIDTH;
-	dev->htcmode_proto->client_info.display_conf = 0;
 
 	return 0;
 
@@ -1273,7 +1245,6 @@ static void projector_cleanup(void)
 	kfree(dev);
 }
 
-#ifdef CONFIG_USB_ANDROID_PROJECTOR_HTC_MODE
 static int projector_ctrlrequest(struct usb_composite_dev *cdev,
 				const struct usb_ctrlrequest *ctrl)
 {
@@ -1311,4 +1282,3 @@ static int projector_ctrlrequest(struct usb_composite_dev *cdev,
 
 	return value;
 }
-#endif

@@ -77,9 +77,7 @@ struct alarm_queue alarms[ANDROID_ALARM_TYPE_COUNT];
 static bool suspended;
 
 
-#ifdef CONFIG_HTC_QUICKBOOT_OFFMODE_ALARM
 int htc_is_offalarm_enabled(void);
-#endif
 
 static void update_timer_locked(struct alarm_queue *base, bool head_removed)
 {
@@ -497,9 +495,7 @@ static int alarm_resume(struct platform_device *pdev)
 
 	return 0;
 }
-
-#ifdef CONFIG_HTC_QUICKBOOT_OFFMODE_ALARM
-/* return the nearest alarm time */
+/* return the nearest alarm tiem */
 static int find_offmode_alarm(void)
 {
 	struct timespec rtc_now;
@@ -535,7 +531,7 @@ static void alarm_shutdown(struct platform_device *pdev)
 		rtc_set_alarm(alarm_rtc_dev, &rtc_alarm);
 	}
 }
-#endif
+
 static struct rtc_task alarm_rtc_task = {
 	.func = alarm_triggered_func
 };
@@ -595,9 +591,7 @@ static struct class_interface rtc_alarm_interface = {
 static struct platform_driver alarm_driver = {
 	.suspend = alarm_suspend,
 	.resume = alarm_resume,
-#ifdef CONFIG_HTC_QUICKBOOT_OFFMODE_ALARM
 	.shutdown = alarm_shutdown,
-#endif
 	.driver = {
 		.name = "alarm"
 	}

@@ -29,7 +29,6 @@
 #define RTC_DEBUG 0
 
 extern void msm_pm_set_max_sleep_time(int64_t sleep_time_ns);
-static unsigned long msmrtc_get_seconds(void);
 
 #if defined(CONFIG_ARCH_QSD8X50)
 #define APP_TIMEREMOTE_PDEV_NAME "rs30000048:00010000"
@@ -160,11 +159,11 @@ msmrtc_timeremote_read_time(struct device *dev, struct rtc_time *tm)
 	return 0;
 }
 
+
 static int
 msmrtc_virtual_alarm_set(struct device *dev, struct rtc_wkalrm *a)
 {
 	unsigned long now = get_seconds();
-	unsigned long msmrtc_now = msmrtc_get_seconds();
 
 	if (!a->enabled) {
 		rtcalarm_time = 0;
@@ -173,8 +172,6 @@ msmrtc_virtual_alarm_set(struct device *dev, struct rtc_wkalrm *a)
 		rtc_tm_to_time(&a->time, &rtcalarm_time);
 
 	if (now > rtcalarm_time) {
-		printk("%s: now = %ld, msmrtc_now = %ld, rtcalarm_time = %ld\n",
-		       __func__, now, msmrtc_now, rtcalarm_time);
 		printk(KERN_ERR "%s: Attempt to set alarm in the past\n",
 		       __func__);
 		rtcalarm_time = 0;

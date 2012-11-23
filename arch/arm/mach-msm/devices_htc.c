@@ -32,7 +32,7 @@ int __init parse_tag_smi(const struct tag *tags)
 
 	for (; t->hdr.size; t = tag_next(t)) {
 		if (t->hdr.tag == ATAG_SMI) {
-			printk(KERN_DEBUG "[K] find the smi tag\n");
+			printk(KERN_DEBUG "find the smi tag\n");
 			find = 1;
 			break;
 		}
@@ -40,7 +40,7 @@ int __init parse_tag_smi(const struct tag *tags)
 	if (!find)
 		return -1;
 
-	printk(KERN_DEBUG "[K] parse_tag_smi: smi size = %d\n", t->u.mem.size);
+	printk(KERN_DEBUG "parse_tag_smi: smi size = %d\n", t->u.mem.size);
 	smi_sz = t->u.mem.size;
 	return smi_sz;
 }
@@ -55,7 +55,7 @@ int __init parse_tag_hwid(const struct tag *tags)
 
 	for (; t->hdr.size; t = tag_next(t)) {
 		if (t->hdr.tag == ATAG_HWID) {
-			printk(KERN_DEBUG "[K] find the hwid tag\n");
+			printk(KERN_DEBUG "find the hwid tag\n");
 			find = 1;
 			break;
 		}
@@ -63,10 +63,61 @@ int __init parse_tag_hwid(const struct tag *tags)
 
 	if (find)
 		hwid = t->u.revision.rev;
-	printk(KERN_DEBUG "[K] parse_tag_hwid: hwid = 0x%x\n", hwid);
+	printk(KERN_DEBUG "parse_tag_hwid: hwid = 0x%x\n", hwid);
 	return hwid;
 }
 __tagtable(ATAG_HWID, parse_tag_hwid);
+
+static char *keycap_tag = NULL;
+static int __init board_keycaps_tag(char *get_keypads)
+{
+	if(strlen(get_keypads))
+		keycap_tag = get_keypads;
+	else
+		keycap_tag = NULL;
+	return 1;
+}
+__setup("androidboot.keycaps=", board_keycaps_tag);
+
+void board_get_keycaps_tag(char **ret_data)
+{
+	*ret_data = keycap_tag;
+}
+EXPORT_SYMBOL(board_get_keycaps_tag);
+
+static char *cid_tag = NULL;
+static int __init board_set_cid_tag(char *get_hboot_cid)
+{
+	if(strlen(get_hboot_cid))
+		cid_tag = get_hboot_cid;
+	else
+		cid_tag = NULL;
+	return 1;
+}
+__setup("androidboot.cid=", board_set_cid_tag);
+
+void board_get_cid_tag(char **ret_data)
+{
+	*ret_data = cid_tag;
+}
+EXPORT_SYMBOL(board_get_cid_tag);
+
+static char *carrier_tag = NULL;
+static int __init board_set_carrier_tag(char *get_hboot_carrier)
+{
+	if(strlen(get_hboot_carrier))
+		carrier_tag = get_hboot_carrier;
+	else
+		carrier_tag = NULL;
+	return 1;
+}
+__setup("androidboot.carrier=", board_set_carrier_tag);
+
+void board_get_carrier_tag(char **ret_data)
+{
+	*ret_data = carrier_tag;
+}
+EXPORT_SYMBOL(board_get_carrier_tag);
 
 #define ATAG_SKUID 0x4d534D73
 int __init parse_tag_skuid(const struct tag *tags)
@@ -76,7 +127,7 @@ int __init parse_tag_skuid(const struct tag *tags)
 
 	for (; t->hdr.size; t = tag_next(t)) {
 		if (t->hdr.tag == ATAG_SKUID) {
-			printk(KERN_DEBUG "[K] find the skuid tag\n");
+			printk(KERN_DEBUG "find the skuid tag\n");
 			find = 1;
 			break;
 		}
@@ -84,7 +135,7 @@ int __init parse_tag_skuid(const struct tag *tags)
 
 	if (find)
 		skuid = t->u.revision.rev;
-	printk(KERN_DEBUG "[K] parse_tag_skuid: hwid = 0x%x\n", skuid);
+	printk(KERN_DEBUG "parse_tag_skuid: hwid = 0x%x\n", skuid);
 	return skuid;
 }
 __tagtable(ATAG_SKUID, parse_tag_skuid);
@@ -101,6 +152,32 @@ static int __init parse_tag_als_calibration(const struct tag *tag)
 
 __tagtable(ATAG_ALS, parse_tag_als_calibration);
 
+/* CSA sensor calibration values */
+#define ATAG_CSA	0x5441001f
+
+unsigned int csa_kvalue1;
+EXPORT_SYMBOL(csa_kvalue1);
+
+unsigned int csa_kvalue2;
+EXPORT_SYMBOL(csa_kvalue2);
+
+unsigned int csa_kvalue3;
+EXPORT_SYMBOL(csa_kvalue3);
+
+static int __init parse_tag_csa_calibration(const struct tag *tag)
+{
+	unsigned int *ptr = (unsigned int *)&tag->u;
+	csa_kvalue1 = ptr[0];
+	csa_kvalue2 = ptr[1];
+	csa_kvalue3 = ptr[2];
+
+	printk(KERN_DEBUG "csa_kvalue1 = 0x%x, csa_kvalue2 = 0x%x, "
+	"csa_kvalue3 = 0x%x\n", csa_kvalue1, csa_kvalue2, csa_kvalue3);
+
+	return 0;
+}
+__tagtable(ATAG_CSA, parse_tag_csa_calibration);
+
 #define ATAG_MEMSIZE 0x5441001e
 unsigned memory_size;
 int __init parse_tag_memsize(const struct tag *tags)
@@ -110,7 +187,7 @@ int __init parse_tag_memsize(const struct tag *tags)
 
 	for (; t->hdr.size; t = tag_next(t)) {
 		if (t->hdr.tag == ATAG_MEMSIZE) {
-			printk(KERN_DEBUG "[K] find the memsize tag\n");
+			printk(KERN_DEBUG "find the memsize tag\n");
 			find = 1;
 			break;
 		}
@@ -120,7 +197,7 @@ int __init parse_tag_memsize(const struct tag *tags)
 		memory_size = t->u.revision.rev;
 		mem_size = t->u.revision.rev;
 	}
-	printk(KERN_DEBUG "[K] parse_tag_memsize: %d\n", memory_size);
+	printk(KERN_DEBUG "parse_tag_memsize: %d\n", memory_size);
 	return mem_size;
 }
 __tagtable(ATAG_MEMSIZE, parse_tag_memsize);
@@ -133,7 +210,7 @@ int __init parse_tag_ddr_id(const struct tag *tags)
 
 	for (; t->hdr.size; t = tag_next(t)) {
 		if (t->hdr.tag == ATAG_DDR_ID) {
-			printk(KERN_DEBUG "[K] find the DDR-ID tag\n");
+			printk(KERN_DEBUG "find the DDR-ID tag\n");
 			find = 1;
 			break;
 		}
@@ -142,7 +219,7 @@ int __init parse_tag_ddr_id(const struct tag *tags)
 	if (find)
 		ddr_id = t->u.revision.rev;
 
-	printk(KERN_DEBUG "[K] parse_tag_ddr_id: %d\n", ddr_id);
+	printk(KERN_DEBUG "parse_tag_ddr_id: %d\n", ddr_id);
 	return ddr_id;
 }
 __tagtable(ATAG_DDR_ID, parse_tag_ddr_id);
@@ -157,7 +234,7 @@ int __init parse_tag_engineerid(const struct tag *tags)
 
 	for (; t->hdr.size; t = tag_next(t)) {
 		if (t->hdr.tag == ATAG_ENGINEERID) {
-			printk(KERN_DEBUG "[K] find the engineer tag\n");
+			printk(KERN_DEBUG "find the engineer tag\n");
 			find = 1;
 			break;
 		}
@@ -165,7 +242,7 @@ int __init parse_tag_engineerid(const struct tag *tags)
 
 	if (find)
 		engineerid = t->u.revision.rev;
-	printk(KERN_DEBUG "[K] parse_tag_engineerid: hwid = 0x%x\n", engineerid);
+	printk(KERN_DEBUG "parse_tag_engineerid: hwid = 0x%x\n", engineerid);
 	return engineerid;
 }
 __tagtable(ATAG_ENGINEERID, parse_tag_engineerid);
@@ -180,7 +257,7 @@ EXPORT_SYMBOL(gs_kvalue);
 static int __init parse_tag_gs_calibration(const struct tag *tag)
 {
 	gs_kvalue = tag->u.revision.rev;
-	printk(KERN_DEBUG "[K] %s: gs_kvalue = 0x%x\n", __func__, gs_kvalue);
+	printk(KERN_DEBUG "%s: gs_kvalue = 0x%x\n", __func__, gs_kvalue);
 	return 0;
 }
 
@@ -200,7 +277,7 @@ static int __init parse_tag_ps_calibration(const struct tag *tag)
 	ps_kparam1 = tag->u.serialnr.low;
 	ps_kparam2 = tag->u.serialnr.high;
 
-	printk(KERN_INFO "[K] %s: ps_kparam1 = 0x%x, ps_kparam2 = 0x%x\n",
+	printk(KERN_INFO "%s: ps_kparam1 = 0x%x, ps_kparam2 = 0x%x\n",
 		__func__, ps_kparam1, ps_kparam2);
 
 	return 0;
@@ -218,7 +295,7 @@ struct tag *t = (struct tag *)tags;
 
 for (; t->hdr.size; t = tag_next(t)) {
 	if (t->hdr.tag == ATAG_CAM) {
-		printk(KERN_DEBUG "[K] find the memsize tag\n");
+		printk(KERN_DEBUG "find the memsize tag\n");
 		find = 1;
 		break;
 	}
@@ -227,7 +304,7 @@ for (; t->hdr.size; t = tag_next(t)) {
 if (find) {
 	mem_size = t->u.revision.rev;
 }
-printk(KERN_DEBUG "[K] parse_tag_memsize: %d\n", mem_size);
+printk(KERN_DEBUG "parse_tag_memsize: %d\n", mem_size);
 return mem_size;
 }
 __tagtable(ATAG_CAM, parse_tag_cam);
@@ -243,9 +320,9 @@ static int __init parse_tag_gyro_gsensor_calibration(const struct tag *tag)
 	unsigned char *ptr = (unsigned char *)&tag->u;
 	memcpy(&gyro_gsensor_kvalue[0], ptr, sizeof(gyro_gsensor_kvalue));
 
-	printk(KERN_DEBUG "[K] gyro_gs data\n");
+	printk(KERN_DEBUG "gyro_gs data\n");
 	for (i = 0; i < sizeof(gyro_gsensor_kvalue); i++)
-		printk(KERN_DEBUG "[K] [%d]:0x%x", i, gyro_gsensor_kvalue[i]);
+		printk(KERN_DEBUG "[%d]:0x%x", i, gyro_gsensor_kvalue[i]);
 
 	return 0;
 }
@@ -262,26 +339,13 @@ int unregister_notifier_by_psensor(struct notifier_block *nb)
 	return blocking_notifier_chain_unregister(&psensor_notifier_list, nb);
 }
 
-#if defined(CONFIG_TOUCH_KEY_FILTER)
-BLOCKING_NOTIFIER_HEAD(touchkey_notifier_list);
-int register_notifier_by_touchkey(struct notifier_block *nb)
-{
-	return blocking_notifier_chain_register(&touchkey_notifier_list, nb);
-}
-
-int unregister_notifier_by_touchkey(struct notifier_block *nb)
-{
-	return blocking_notifier_chain_unregister(&touchkey_notifier_list, nb);
-}
-#endif
-
 #define ATAG_HERO_PANEL_TYPE 0x4d534D74
 int panel_type;
 int __init tag_panel_parsing(const struct tag *tags)
 {
 	panel_type = tags->u.revision.rev;
 
-	printk(KERN_DEBUG "[K] %s: panel type = %d\n", __func__,
+	printk(KERN_DEBUG "%s: panel type = %d\n", __func__,
 		panel_type);
 
 	return panel_type;
@@ -299,6 +363,27 @@ int __init parse_tag_mfg_gpio_table(const struct tag *tags)
        return 0;
 }
 __tagtable(ATAG_MFG_GPIO_TABLE, parse_tag_mfg_gpio_table);
+
+static char *emmc_tag;
+static int __init board_set_emmc_tag(char *get_hboot_emmc)
+{
+	if (strlen(get_hboot_emmc))
+		emmc_tag = get_hboot_emmc;
+	else
+		emmc_tag = NULL;
+	return 1;
+}
+__setup("androidboot.emmc=", board_set_emmc_tag);
+
+int board_emmc_boot(void)
+{
+	if (emmc_tag) {
+		if (!strcmp(emmc_tag, "true"))
+			return 1;
+	}
+
+	return 0;
+}
 
 char *board_get_mfg_sleep_gpio_table(void)
 {
@@ -347,7 +432,7 @@ static int __init board_bootloader_setup(char *str)
 	char *build = NULL;
 	char *args = temp;
 
-	printk(KERN_INFO "[K] %s: %s\n", __func__, str);
+	printk(KERN_INFO "%s: %s\n", __func__, str);
 
 	strcpy(temp, str);
 
@@ -359,16 +444,16 @@ static int __init board_bootloader_setup(char *str)
 	 */
 	if (build) {
 		if (build[0] == '0') {
-			printk(KERN_INFO "[K] %s: SHIP BUILD\n", __func__);
+			printk(KERN_INFO "%s: SHIP BUILD\n", __func__);
 			build_flag = SHIP_BUILD;
 		} else if (build[0] == '2') {
-			printk(KERN_INFO "[K] %s: ENG BUILD\n", __func__);
+			printk(KERN_INFO "%s: ENG BUILD\n", __func__);
 			build_flag = ENG_BUILD;
 		} else if (build[0] == '1') {
-			printk(KERN_INFO "[K] %s: MFG BUILD\n", __func__);
+			printk(KERN_INFO "%s: MFG BUILD\n", __func__);
 			build_flag = MFG_BUILD;
 		} else {
-			printk(KERN_INFO "[K] %s: default ENG BUILD\n", __func__);
+			printk(KERN_INFO "%s: default ENG BUILD\n", __func__);
 			build_flag = ENG_BUILD;
 		}
 	}
@@ -391,7 +476,7 @@ int __init tag_ps_parsing(const struct tag *tags)
 {
 	ps_type = tags->u.revision.rev;
 
-	printk(KERN_DEBUG "[K] %s: PS type = 0x%x\n", __func__,
+	printk(KERN_DEBUG "%s: PS type = 0x%x\n", __func__,
 		ps_type);
 
 	return ps_type;

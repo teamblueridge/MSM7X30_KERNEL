@@ -290,19 +290,12 @@ static void vfe_addr_convert(struct msm_vfe_phy_info *pinfo,
 		break;
 	} /* switch */
 }
-#if defined(CONFIG_MACH_KINGDOM)
-static int vfe_release=0;
-#endif
+
+
 static void vfe31_proc_ops(enum VFE31_MESSAGE_ID id, void *msg, size_t len)
 {
 	struct msm_vfe_resp *rp;
-#if defined(CONFIG_MACH_KINGDOM)
-	if (vfe_release)
-	{
-		printk("[CAM] ops return");
-		return;
-	}
-#endif
+
 	rp = vfe31_ctrl->resp->vfe_alloc(sizeof(struct msm_vfe_resp),
 		vfe31_ctrl->syncdata, GFP_ATOMIC);
 	if (!rp) {
@@ -478,17 +471,14 @@ static void vfe31_release(struct platform_device *pdev)
 	struct msm_sensor_ctrl *sctrl =
 		&((struct msm_sync *)vfe_syncdata)->sctrl;
 	struct msm_camera_sensor_info *sinfo = pdev->dev.platform_data;
-#if defined(CONFIG_MACH_KINGDOM)
 
-	vfe_release = 1;
-#endif
 	pr_info("[CAM] %s E\n", __func__);
 
 	if (!sinfo->csi_if) {
 		if (sctrl)
 			sctrl->s_release();
 	}
-#if !defined(CONFIG_MACH_RUNNYMEDE)
+#if defined(CONFIG_MACH_PRIMOU) || defined(CONFIG_MACH_PRIMOC)
         vfe_stop();
 #endif
 	vfemem = vfe31_ctrl->vfemem;
@@ -2592,7 +2582,7 @@ static void vfe31_process_multishot_frame(void)
 
 static void vfe31_process_output_path_irq_1(void)
 {
-	pr_info("[CAM] vfe31_process_output_path_irq_1, vfe_capture_count %d out1.free_buf.available %d\n",
+	CDBG("[CAM] vfe31_process_output_path_irq_1, vfe_capture_count %d out1.free_buf.available %d\n",
 				vfe31_ctrl->vfe_capture_count, vfe31_ctrl->outpath.out1.free_buf.available);
 
 	if ((vfe31_ctrl->operation_mode & 1)
@@ -3089,10 +3079,6 @@ static int vfe31_init(struct msm_vfe_callback *presp,
 	struct platform_device *dev)
 {
 	int rc = 0;
-#if defined(CONFIG_MACH_KINGDOM)
-	
-	vfe_release = 0;
-#endif
 	pr_info("[CAM]vfe31_init\n");
 
 	ebi1_clk = clk_get(NULL, clk_name);
