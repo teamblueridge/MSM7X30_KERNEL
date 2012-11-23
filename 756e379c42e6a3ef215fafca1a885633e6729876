@@ -1,0 +1,8 @@
+Change-Id: I756e379c42e6a3ef215fafca1a885633e6729876
+Code-Review+2: Simon Sickle <simonsimons34@gmail.com>
+Verified+1: Jenkins Code Verification <webmaster@teamblueridge.com>
+Submitted-by: Simon Sickle <simonsimons34@gmail.com>
+Submitted-at: Fri, 23 Nov 2012 07:57:55 -0500
+Reviewed-on: http://gerrit.teamblueridge.com:8080/135
+Project: MSM7X30_KERNEL
+Branch: refs/heads/jellybean
