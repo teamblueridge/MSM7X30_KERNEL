@@ -4738,25 +4738,7 @@ static void primoc_reset(void)
 void primoc_add_usb_devices(void)
 {
 	printk(KERN_INFO "%s rev: %d\n", __func__, system_rev);
-	android_usb_pdata.products[0].product_id =
-			android_usb_pdata.product_id;
-
-
-	/* diag bit set */
-	if (get_radio_flag() & 0x20000)
-		android_usb_pdata.diag_init = 1;
-
-	/* add cdrom support in normal mode */
-	if (board_mfg_mode() == 0) {
-#ifdef CONFIG_SKU_VMUS
-		android_usb_pdata.nluns = 2;
-		android_usb_pdata.cdrom_lun = 0x2;
-#else
-		android_usb_pdata.nluns = 3;
-		android_usb_pdata.cdrom_lun = 0x4;
-#endif
-	}
-
+	android_usb_pdata.products[0].product_id = android_usb_pdata.product_id;
 	config_primoc_usb_id_gpios(0);
 	msm_device_gadget_peripheral.dev.parent = &msm_device_otg.dev;
 	platform_device_register(&msm_device_gadget_peripheral);

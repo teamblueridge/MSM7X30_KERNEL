@@ -207,6 +207,13 @@ config S5K3H1GX
   ---help---
     Samsung 8M 3H1 MIPI AF Sensor
 
+config OV8810
+  bool "Sensor ov8810"
+  depends on MSM_CAMERA
+  default n
+  ---help---
+    OmniVision 8M Bayer Sensor
+
 config MSM_CAMERA_FLASH_SC628A
 	bool "Qualcomm MSM camera sc628a flash support"
 	depends on MSM_CAMERA
