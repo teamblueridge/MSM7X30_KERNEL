@@ -50,15 +50,15 @@ struct clk *clk_get(struct device *dev, const char *id);
  *
  * Must not be called from within atomic context.
  */
-#ifdef CONFIG_HAVE_CLK_PREPARE
-int clk_prepare(struct clk *clk);
-#else
+//#ifdef CONFIG_HAVE_CLK_PREPARE
+//int clk_prepare(struct clk *clk);
+//#else
 static inline int clk_prepare(struct clk *clk)
 {
 	might_sleep();
 	return 0;
 }
-#endif
+//#endif
 
 /**
  * clk_enable - inform the system when the clock source should be running.
@@ -88,6 +88,13 @@ int clk_enable(struct clk *clk);
  */
 void clk_disable(struct clk *clk);
 
+
+/* clk_disable_unprepare helps cases using clk_disable in non-atomic context. */
+static inline void clk_disable_unprepare(struct clk *clk)
+{
+        clk_disable(clk);
+        clk_unprepare(clk);
+}
 
 /**
  * clk_unprepare - undo preparation of a clock source
