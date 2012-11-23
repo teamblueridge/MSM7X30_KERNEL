@@ -2001,14 +2001,10 @@ struct msm_camera_device_platform_data camera_device_data = {
   .ioext.csiirq = INT_CSI,
 };
 
-#if defined(CONFIG_ARCH_MSM_FLASHLIGHT) && defined(CONFIG_S5K4E5YX)
+#if defined CONFIG_ARCH_MSM_FLASHLIGHT
 static int flashlight_control(int mode)
 {
-#ifdef CONFIG_FLASHLIGHT_TPS61310
-	return tps61310_flashlight_control(mode);
-#else
-	return 0;
-#endif
+	return aat1271_flashlight_control(mode);
 }
 #endif
 #if defined(CONFIG_ARCH_MSM_FLASHLIGHT) && defined(CONFIG_S5K4E5YX)
@@ -2160,12 +2156,13 @@ static struct camera_flash_info msm_camera_sensor_s5k4e5yx_flash_info = {
 	.led_est_table = msm_camera_sensor_s5k4e5yx_led_table,
 };
 
+#ifdef CONFIG_ARCH_MSM_FLASHLIGHT
 static struct camera_flash_cfg msm_camera_sensor_s5k4e5yx_flash_cfg = {
 	.camera_flash = flashlight_control,
 	.num_flash_levels		= FLASHLIGHT_NUM,
-	.low_temp_limit			= 10,
+	.low_temp_limit			= 5,
 	.low_cap_limit			= 15,
-	.flash_info             = &msm_camera_sensor_s5k4e5yx_flash_info,
+	.flash_info             = NULL,
 };
 //HTC_END
 #endif
@@ -4739,31 +4736,34 @@ static struct platform_device htc_headset_mgr = {
 
 /* HEADSET DRIVER END */
 
-#ifdef CONFIG_FLASHLIGHT_TPS61310
-static void config_flashlight_gpios_tps61310(void)
+#ifdef CONFIG_ARCH_MSM_FLASHLIGHT
+static void config_primou_flashlight_gpios(void)
 {
-	static uint32_t flashlight_gpio_table[] = {
-		GPIO_CFG(PRIMOU_GPIO_TORCH_EN, 0, GPIO_OUTPUT,
-						GPIO_NO_PULL, GPIO_CFG_2MA),
+	PCOM_GPIO_CFG(VISION_GPIO_FLASHLIGHT_TORCH, 0,
+		GPIO_OUTPUT, GPIO_PULL_DOWN, GPIO_2MA),
+	PCOM_GPIO_CFG(VISION_GPIO_FLASHLIGHT_FLASH, 0,
+		GPIO_OUTPUT, GPIO_PULL_DOWN, GPIO_2MA),
 	};
+
 	config_gpio_table(flashlight_gpio_table,
 		ARRAY_SIZE(flashlight_gpio_table));
-
 }
 
 
-static struct TPS61310_flashlight_platform_data primou_flashlight_data = {
-	.gpio_init = config_flashlight_gpios_tps61310,
-	.tps61310_strb1 = PRIMOU_GPIO_TORCH_EN,
-	.tps61310_strb0 = PM8058_GPIO_PM_TO_SYS(PRIMOU_GPIO_FLASH_EN),
+static struct flashlight_platform_data primou_flashlight_data = {
+	.gpio_init = config_primou_flashlight_gpios,
+	.torch = PRIMOU_GPIO_FLASHLIGHT_TORCH,
+	.flash = PRIMOU_GPIO_FLASHLIGHT_FLASH,
 	.flash_duration_ms = 600,
 	.led_count = 1,
+	.chip_model = 0,
 };
 
-static struct i2c_board_info primou_flashlight[] = {
+static struct platform_device primou_flashlight_device = {
 {
-	I2C_BOARD_INFO("TPS61310_FLASHLIGHT", 0x66 >> 1),
-	.platform_data	= &primou_flashlight_data,
+	.name = FLASHLIGHT_NAME,
+	.dev	= {
+	  .platform_data = &primou_flashlight_data,
 	},
 };
 #endif
@@ -5011,8 +5011,9 @@ static struct platform_device *devices[] __initdata = {
 #ifdef CONFIG_BT
         &primou_rfkill,
 #endif
-
-
+#ifdef CONFIG_ARCH_MSM_FLASHLIGHT
+	&primou_flashlight_device,
+#endif
         &pm8058_leds,
         &cable_detect_device,
         &htc_headset_mgr,

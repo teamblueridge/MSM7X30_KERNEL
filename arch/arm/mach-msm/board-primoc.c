@@ -1266,15 +1266,7 @@ struct msm_camera_device_platform_data camera_device_data = {
 #ifdef CONFIG_ARCH_MSM_FLASHLIGHT
 static int flashlight_control(int mode)
 {
-#if defined(CONFIG_FLASHLIGHT_AAT1271) || defined(CONFIG_LEDS_MAX8957_FLASH)
-#ifndef CONFIG_LEDS_MAX8957_FLASH
 	return aat1271_flashlight_control(mode);
-#else
-	return max8957_flashlight_control(mode);
-#endif
-#else
-	return 0;
-#endif
 }
 #endif
 #if defined(CONFIG_LEDS_MAX8957_FLASH) && defined(CONFIG_S5K4E5YX)
@@ -1425,15 +1417,15 @@ static struct camera_flash_info msm_camera_sensor_s5k4e5yx_flash_info = {
 	.led_info = &msm_camera_sensor_s5k4e5yx_led_info,
 	.led_est_table = msm_camera_sensor_s5k4e5yx_led_table,
 };
-
+#endif
+#ifdef CONFIG_ARCH_MSM_FLASHLIGHT
 static struct camera_flash_cfg msm_camera_sensor_s5k4e5yx_flash_cfg = {
 	.camera_flash = flashlight_control,
 	.num_flash_levels = FLASHLIGHT_NUM,
-	.low_temp_limit = 5,
-	.low_cap_limit = 15,
-	.flash_info             = &msm_camera_sensor_s5k4e5yx_flash_info,
+	.low_temp_limit	= 5,
+	.low_cap_limit	= 15,
+	.flash_info	= NULL,
 };
-//HTC_END
 #endif
 
 #ifdef CONFIG_S5K4E5YX
@@ -3234,32 +3226,32 @@ static void headset_device_register(void)
 
 /* HEADSET DRIVER END */
 
-#if defined(CONFIG_FLASHLIGHT_AAT1271) || defined(CONFIG_LEDS_MAX8957_FLASH)
+#if CONFIG_ARCH_MSM_FLASHLIGHT
 static void config_primoc_flashlight_gpios(void)
 {
 	uint32_t flashlight_gpio_table[] = {
-		GPIO_CFG(PRIMOC_GPIO_FLASH_EN, 0, GPIO_CFG_OUTPUT,
-						GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+		PCOM_GPIO_CFG(VISION_GPIO_FLASHLIGHT_TORCH, 0,
+			GPIO_OUTPUT, GPIO_PULL_DOWN, GPIO_2MA),
+		PCOM_GPIO_CFG(VISION_GPIO_FLASHLIGHT_FLASH, 0,
+			GPIO_OUTPUT, GPIO_PULL_DOWN, GPIO_2MA),
 	};
+
 	config_gpio_table(flashlight_gpio_table,
 		ARRAY_SIZE(flashlight_gpio_table));
 }
 #endif
 
-#ifdef CONFIG_FLASHLIGHT_AAT1271
 static struct flashlight_platform_data primoc_flashlight_data = {
 	.gpio_init = config_primoc_flashlight_gpios,
-	/*
-	.torch = primoc_GPIO_TORCH_EN,
-	.flash = primoc_GPIO_FLASH_EN,
-	*/
+	.torch = PRIMOC_GPIO_FLASHLIGHT_TORCH,
+	.flash = PRIMOC_GPIO_FLASHLIGHT_FLASH,
 	.flash_duration_ms = 600,
 	.led_count = 1,
+	.chip_model = 0,
 };
 
 static struct platform_device primoc_flashlight_device = {
-	/*.name = FLASHLIGHT_NAME,*/
-	.name = "AAT_FLASHLIGHT",
+	.name = FLASHLIGHT_NAME,
 	.dev = {
 		.platform_data = &primoc_flashlight_data,
 	},
@@ -3485,7 +3477,7 @@ static struct platform_device *devices[] __initdata = {
 #ifdef CONFIG_BT
 	&primoc_rfkill,
 #endif
-#ifdef CONFIG_FLASHLIGHT_AAT1271
+#ifdef CONFIG_ARCH_MSM_FLASHLIGHT
 	&primoc_flashlight_device,
 #endif
 #ifdef CONFIG_LEDS_PM8058
