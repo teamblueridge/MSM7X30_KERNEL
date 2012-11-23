@@ -51,6 +51,9 @@ obj-$(CONFIG_MACH_PRIMOC) += s5k4e5yx.o s5k4e5yx_reg_pro.o
 obj-$(CONFIG_MACH_KINGDOM) += s5k4e5yx.o s5k4e5yx_reg_kin.o
 endif
 
+ifdef CONFIG_MACH_VISION
+obj-$(CONFIG_S5K4E1GX) += s5k4e1gx.o s5k4e1gx_reg.o
+endif
 
 ifeq ($(CONFIG_MSM_CAMERA_V4L2),y)
   obj-$(CONFIG_ARCH_MSM8X60) += msm_io_8x60_v4l2.o msm_vfe31_v4l2.o msm_vpe_8x60_v4l2.o
