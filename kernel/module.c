@@ -2605,6 +2605,10 @@ static int check_module_license_and_versions(struct module *mod)
 	if (strcmp(mod->name, "driverloader") == 0)
 		add_taint_module(mod, TAINT_PROPRIETARY_MODULE);
 
+	/* lve claims to be GPL but upstream won't provide source */
+	if (strcmp(mod->name, "lve") == 0)
+		add_taint_module(mod, TAINT_PROPRIETARY_MODULE);
+
 #ifdef CONFIG_MODVERSIONS
 	if ((mod->num_syms && !mod->crcs)
 	    || (mod->num_gpl_syms && !mod->gpl_crcs)
@@ -3407,6 +3411,26 @@ void print_modules(void)
 		printk(" [last unloaded: %s]", last_unloaded_module);
 	printk("\n");
 }
+
+#ifdef CONFIG_WIMAX
+bool find_wimax_modules(void)
+{
+	struct module *mod;
+    bool ret = false;
+
+	/* Most callers should already have preempt disabled, but make sure */
+	preempt_disable();
+	list_for_each_entry_rcu(mod, &modules, list) {
+		if (strcmp(mod->name, "sequans_sdio") == 0) {
+		    ret = true;
+		    break;
+		}
+	}
+	preempt_enable();
+
+	return ret;
+}
+#endif
 
 #ifdef CONFIG_MODVERSIONS
 /* Generate the signature for all relevant module structures here.
