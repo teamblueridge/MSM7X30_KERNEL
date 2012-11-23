@@ -7,6 +7,12 @@
 menu "Miscellaneous I2C Chip support"
 
 
+config SENSORS_BMA150
+	tristate "BMA150 G-sensor Driver"
+	depends on I2C=y
+	help
+	 BMA150 G-sensor Driver implemented by HTC.
+
 config SENSORS_ONLY_BMA250
 	tristate "BMA250 acceleration sensor support"
 	depends on I2C=y
@@ -24,6 +30,18 @@ config SENSORS_AKM8975
         depends on I2C
         help
          AKM8975 Compass Driver implemented by HTC.
+
+config SENSORS_CAPSENSE
+	tristate "CapSense Driver"
+	depends on I2C
+	help
+	 CapSense Driver implemented by HTC.
+
+config SENSORS_CAPSENSE_EXPRESS
+	tristate "CapSense Express Driver"
+	depends on I2C
+	help
+	 CapSense Express Driver implemented by HTC.
 
 config SENSORS_AKM8975_PANA_GYRO
         tristate "AKM8973 Compass Driver for Pana Gyro"
@@ -46,12 +64,6 @@ config TPS65200
          by GPIO or Register
 
 	  PANASONIC GYR Driver implemented by HTC.
-
-config SENSORS_BMA150
-	tristate "BMA150 G-sensor Driver"
-	depends on I2C
-	help
-	 BMA150 G-sensor Driver implemented by HTC.
 
 config SENSORS_BMA250
 	tristate "BMA250 acceleration sensor support"

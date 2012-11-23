@@ -290,6 +290,7 @@ static int diagchar_open(struct inode *inode, struct file *file)
 				return -ENOMEM;
 			}
 		}
+		driver->data_ready[i] = 0x0;
 		driver->data_ready[i] |= MSG_MASKS_TYPE;
 		driver->data_ready[i] |= EVENT_MASKS_TYPE;
 		driver->data_ready[i] |= LOG_MASKS_TYPE;
@@ -322,8 +323,7 @@ static int diagchar_close(struct inode *inode, struct file *file)
 	if (driver) {
 #ifdef CONFIG_DIAG_OVER_USB
 		/* If the SD logging process exits, change logging to USB mode */
-		if (driver->logging_process_id == current->tgid
-			&& (driver->logging_mode != USB_MODE)) {
+		if (driver->logging_process_id == current->tgid) {
 			driver->logging_mode = USB_MODE;
 			diagfwd_connect();
 		}

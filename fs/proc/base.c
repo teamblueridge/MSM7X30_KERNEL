@@ -802,7 +802,7 @@ static ssize_t mem_rw(struct file *file, char __user *buf,
 	struct mm_struct *mm = file->private_data;
 	unsigned long addr = *ppos;
 	ssize_t copied;
-	char *page;
+ 	char *page;
 
 	if (!mm)
 		return 0;
@@ -838,7 +838,7 @@ static ssize_t mem_rw(struct file *file, char __user *buf,
 		buf += this_len;
 		addr += this_len;
 		copied += this_len;
-		count -= this_len;
+		count -= this_len;			
 	}
 	*ppos = addr;
 

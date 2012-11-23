@@ -204,8 +204,6 @@ config  ARCH_MSM_KRAITMP
 
 config  ARCH_MSM_CORTEX_A5
 	bool
-	select PERF_EVENTS if !ARCH_MSM9615
-	select HAVE_HW_BREAKPOINT if !ARCH_MSM9615
 	select HAVE_HW_BRKPT_RESERVED_RW_ACCESS
 
 config ARCH_MSM7X27A
@@ -236,6 +234,44 @@ config MSM_REMOTE_SPINLOCK_SFPB
 	bool
 config MSM_ADM3
 	bool
+
+config PERFLOCK
+        depends on CPU_FREQ
+        depends on ARCH_MSM8960 || ARCH_MSM8X60 || ARCH_QSD8X50 || ARCH_MSM7X30 || ARCH_MSM7X00A || ARCH_MSM7X27A || ARCH_MSM7X25
+        default n
+        bool "HTC Performance Lock"
+
+config PERFLOCK_BOOT_LOCK
+        depends on PERFLOCK
+        depends on ARCH_MSM8960 || ARCH_MSM8X60 || ARCH_QSD8X50 || ARCH_MSM7X30 || ARCH_MSM7X00A || ARCH_MSM7X27A || ARCH_MSM7X25
+        default n
+        bool "Boot Time Performance Lock"
+
+config PERFLOCK_SCREEN_POLICY
+        depends on PERFLOCK
+        depends on ARCH_MSM8960 || ARCH_MSM8X60 || ARCH_QSD8X50 || ARCH_MSM7X00A || ARCH_MSM7X27A || ARCH_MSM7X25
+        default n
+        bool "Change Cpufreq Policy while Screen ON/OFF"
+
+config PERFLOCK_SCREEN_ON_MIN
+        depends on PERFLOCK_SCREEN_POLICY
+        int "Minimum speed while screen on"
+        default MSM_CPU_FREQ_ONDEMAND_MIN
+
+config PERFLOCK_SCREEN_ON_MAX
+        depends on PERFLOCK_SCREEN_POLICY
+        int "Maximum speed while screen on"
+        default MSM_CPU_FREQ_ONDEMAND_MAX
+
+config PERFLOCK_SCREEN_OFF_MIN
+        depends on PERFLOCK_SCREEN_POLICY
+        int "Minimum speed while screen off"
+        default MSM_CPU_FREQ_ONDEMAND_MIN
+
+config PERFLOCK_SCREEN_OFF_MAX
+        depends on PERFLOCK_SCREEN_POLICY
+        int "Maximum speed while screen off"
+        default MSM_CPU_FREQ_ONDEMAND_MIN
 
 menu "MSM Board Selection"
 
@@ -329,7 +365,6 @@ config MACH_PRIMODD
 		depends on ARCH_MSM7X27A
 		depends on !MSM_STACKED_MEMORY
 		default n
-		select FB_MSM_MIPI_VIDEO_ONLY
 		bool "Primodd_ct"
 		help
 			Support for Primodd_ct (PDA phone).
@@ -338,7 +373,6 @@ config MACH_PRIMODS
 		depends on ARCH_MSM7X27A
 		depends on !MSM_STACKED_MEMORY
 		default n
-		select FB_MSM_MIPI_VIDEO_ONLY
 		bool "Primods"
 		help
 			Support for Primods (PDA phone).
@@ -446,6 +480,13 @@ config MACH_BLISS
        help
          Support for the Qualcomm Bliss board.
 
+config MACH_VISION
+       depends on ARCH_MSM7X30
+       default n
+       bool "Vision"
+       help
+         Support for the Qualcomm Vision board.
+
 config MACH_SPADE
        depends on ARCH_MSM7X30
        default n
@@ -485,6 +526,13 @@ config MACH_PRIMOC
        depends on ARCH_MSM7X30
        default n
        bool "Primoc"
+       select ARCH_SPARSEMEM_ENABLE
+       select MEMORY_HOTPLUG
+       select MEMORY_HOTREMOVE
+       select ARCH_ENABLE_MEMORY_HOTPLUG
+       select ARCH_ENABLE_MEMORY_HOTREMOVE
+       select ARCH_MEMORY_PROBE
+       select ARCH_MEMORY_REMOVE
        help
          Support for the Qualcomm Primoc board.
 
@@ -492,16 +540,8 @@ config MACH_PRIMOTD
        depends on ARCH_MSM7X30
        default n
        bool "Primotd"
-       select DONT_MAP_HOLE_AFTER_MEMBANK0
        help
          Support for the Qualcomm Primotd board.
-
-config MACH_GOLFC
-       depends on ARCH_MSM7X30
-       default n
-       bool "Golfc"
-       help
-         Support for the Qualcomm Golfc board.
 
 config MACH_VIVOW_EVM
        depends on ARCH_MSM7X30
@@ -684,14 +724,6 @@ config MACH_RIDER
         help
           Support for the RIDER device.
 
-config MACH_VILLEC2
-        depends on ARCH_MSM8X60
-        default n
-        bool "VILLEC2"
-        select SMP_PARALLEL_START
-        help
-         Support for the VILLEC2 device.
-
 config MACH_VERDI_LTE
 	depends on ARCH_MSM8X60
 	default n
@@ -853,13 +885,6 @@ config MSM_MDP40
 	depends on ARCH_MSM7X30 || ARCH_MSM8X60
 	default y
 
-config FB_MSM_MIPI_VIDEO_ONLY
-	depends on ARCH_MSM7X27A
-	default n
-	bool
-	help
-	  Use for VIDEO mode only panel
-
 config MSM_STACKED_MEMORY
 	bool "Stacked Memory"
 	default y
@@ -894,13 +919,6 @@ config KERNEL_PMEM_SMI_REGION
 	depends on ANDROID_PMEM && ((ARCH_QSD8X50 && !PMEM_GPU0) || (ARCH_MSM8X60 && !VCM))
 	help
 	   Enable the in-kernel PMEM allocator to use SMI memory.
-
-config PANEL_SELF_REFRESH
-	depends on (MACH_SPADE || MACH_MECHA)
-	default n
-	bool "Panel Self-refresh"
-	help
-	    Support for the board Spade/Mecha Panel Self-refresh.
 
 config PMEM_GPU0
 	bool "Enable PMEM GPU0 region"
@@ -1410,8 +1428,8 @@ config MSM_DSPS
 
 config MSM_SDIO_CTL
 	bool "SDIO CTL Driver"
-	depends on MSM_SDIO_AL
-	default y
+	depends on MSM_SDIO_CMUX
+	default n
 	help
 	  Provides a binary SDIO control port interface.
 
@@ -1507,6 +1525,14 @@ config MSM_RPCSERVER_HANDSET
 	  headset switch and clamshell state.
 
 config MSM_RMT_STORAGE_CLIENT
+	depends on (ARCH_MSM && MSM_ONCRPCROUTER)
+	default n
+	bool "Remote Storage RPC client"
+	help
+	  Provide RPC mechanism for remote processors to access storage
+	  device on apps processor.
+
+config MSM_RMT_STORAGE_SERVER
 	depends on (ARCH_MSM && MSM_ONCRPCROUTER)
 	default n
 	bool "Remote Storage RPC client"
