@@ -142,7 +142,7 @@ int i2c_syn_write(struct i2c_client *client, uint8_t addr, uint8_t *data, uint8_
 	}
 
 	if (retry == SYN_I2C_RETRY_TIMES) {
-		printk(KERN_INFO "[TP] i2c_write_block retry over %d\n",
+		printk(KERN_ERR "[TP] i2c_write_block retry over %d\n",
 			SYN_I2C_RETRY_TIMES);
 		return -EIO;
 	}
@@ -277,7 +277,7 @@ static ssize_t register_store(struct device *dev,
 			ret = i2c_smbus_write_byte_data(ts->client,
 					syn_reg_addr, write_da);
 			if (ret < 0) {
-				printk(KERN_DEBUG "[TP] %s: write fail(%d)\n",
+				printk(KERN_ERR "[TP] %s: write fail(%d)\n",
 								__func__, ret);
 			}
 		}
@@ -407,28 +407,28 @@ static int synaptics_touch_sysfs_init(void)
 	int ret;
 	android_touch_kobj = kobject_create_and_add("android_touch", NULL);
 	if (android_touch_kobj == NULL) {
-		printk(KERN_ERR "[TP] TOUCH_ERR: %s: subsystem_register failed\n", __func__);
+		printk(KERN_ERR "[TP] %s: subsystem_register failed\n", __func__);
 		ret = -ENOMEM;
 		return ret;
 	}
 	ret = sysfs_create_file(android_touch_kobj, &dev_attr_vendor.attr);
 	if (ret) {
-		printk(KERN_ERR "[TP] TOUCH_ERR: touch_sysfs_init: sysfs_create_group failed\n");
+		printk(KERN_ERR "[TP] touch_sysfs_init: sysfs_create_group failed\n");
 		return ret;
 	}
 	ret = sysfs_create_file(android_touch_kobj, &dev_attr_gpio.attr);
 	if (ret) {
-		printk(KERN_ERR "[TP] TOUCH_ERR: %s: sysfs_create_file failed\n", __func__);
+		printk(KERN_ERR "[TP] %s: sysfs_create_file failed\n", __func__);
 		return ret;
 	}
 	ret = sysfs_create_file(android_touch_kobj, &dev_attr_debug_level.attr);
 	if (ret) {
-		printk(KERN_ERR "[TP] TOUCH_ERR: %s: sysfs_create_file failed\n", __func__);
+		printk(KERN_ERR "[TP] %s: sysfs_create_file failed\n", __func__);
 		return ret;
 	}
 	ret = sysfs_create_file(android_touch_kobj, &dev_attr_unlock.attr);
 	if (ret) {
-		printk(KERN_ERR "[TP] TOUCH_ERR: %s: sysfs_create_file failed\n", __func__);
+		printk(KERN_ERR "[TP] %s: sysfs_create_file failed\n", __func__);
 		return ret;
 	}
 	if (get_address_base(gl_ts, 0x54, FUNCTION)) {
@@ -441,7 +441,7 @@ static int synaptics_touch_sysfs_init(void)
 	syn_reg_addr = 0;
 	ret = sysfs_create_file(android_touch_kobj, &dev_attr_register.attr);
 	if (ret) {
-		printk(KERN_ERR "[TP] TOUCH_ERR: %s: sysfs_create_file failed\n", __func__);
+		printk(KERN_ERR "[TP] %s: sysfs_create_file failed\n", __func__);
 		return ret;
 	}
 
@@ -512,7 +512,7 @@ static void synaptics_ts_work_func(struct work_struct *work)
 		if (ret < 0)
 			printk(KERN_ERR "[TP] TOUCH_ERR: synaptics_ts_work_func: i2c_transfer failed\n");
 		else
-			printk(KERN_ERR "[TP] TOUCH_ERR: synaptics_ts_work_func: Status ERROR: %d\n", buf[0] & 0x0F);
+			printk(KERN_INFO "[TP] TOUCH_ERR: synaptics_ts_work_func: Status ERROR: %d\n", buf[0] & 0x0F);
 		/* reset touch control */
 		if (ts->power) {
 			ret = ts->power(0);
@@ -521,7 +521,7 @@ static void synaptics_ts_work_func(struct work_struct *work)
 			msleep(10);
 			ret = ts->power(1);
 			if (ret < 0)
-				printk(KERN_ERR "[TP] TOUCH_ERR: synaptics_ts_work_func power on failed\n");
+				printk(KERN_ERR "[TP] synaptics_ts_work_func power on failed\n");
 		} else {
 			i2c_syn_write_byte_data(ts->client,
 				get_address_base(ts, 0x01, COMMAND_BASE), 0x01);
@@ -535,10 +535,10 @@ static void synaptics_ts_work_func(struct work_struct *work)
 				get_address_base(ts, 0x01, CONTROL_BASE) + 1, ts->intr_bit);
 	} else {
 		if (ts->debug_log_level & 0x1) {
-			printk(KERN_INFO "[TP] Touch:");
+			printk("[TP] Touch:");
 			for (i = 0; i < sizeof(buf); i++)
-				printk(KERN_INFO " %2x", buf[i]);
-			printk(KERN_INFO "\n");
+				printk(" %2x", buf[i]);
+			printk("\n");
 		}
 		if (ts->noise_information && ts->jumpfq_enable) {
 			if (buf[sizeof(buf)-2] >> 6 != ts->noise_level) {
@@ -793,7 +793,7 @@ static int synaptics_ts_probe(
 	uint8_t data[6];
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
-		printk(KERN_ERR "[TP] TOUCH_ERR: synaptics_ts_probe: need I2C_FUNC_I2C\n");
+		printk(KERN_ERR "[TP] synaptics_ts_probe: need I2C_FUNC_I2C\n");
 		ret = -ENODEV;
 		goto err_check_functionality_failed;
 	}
@@ -868,7 +868,7 @@ static int synaptics_ts_probe(
 	ts->max[0] = max_x = data[0] | data[1] << 8;
 	ts->max[1] = max_y = data[2] | data[3] << 8;
 
-	printk(KERN_INFO "[TP] max_x: %X, max_y: %X\n", max_x, max_y);
+	printk(KERN_INFO"[TP] max_x: %X, max_y: %X\n", max_x, max_y);
 
 	if (pdata->abs_x_min == pdata->abs_x_max && pdata->abs_y_min == pdata->abs_y_max) {
 		pdata->abs_x_min = 0;
@@ -931,7 +931,7 @@ static int synaptics_ts_probe(
 	set_bit(KEY_SEARCH, ts->input_dev->keybit);
 
 	printk(KERN_INFO "[TP] synaptics_ts_probe: max_x %d, max_y %d\n", max_x, max_y);
-	printk(KERN_INFO "[TP] input_set_abs_params: mix_x %d, max_x %d, min_y %d, max_y %d\n",
+	printk(KERN_INFO "input_set_abs_params: mix_x %d, max_x %d, min_y %d, max_y %d\n",
 		pdata->abs_x_min, pdata->abs_x_max, pdata->abs_y_min, pdata->abs_y_max);
 
 	input_set_abs_params(ts->input_dev, ABS_MT_POSITION_X, pdata->abs_x_min, pdata->abs_x_max, 0, 0);

@@ -1008,6 +1008,7 @@ static int mmc_sd_init_card(struct mmc_host *host, u32 ocr,
 		 * Set bus speed.
 		 */
 		mmc_set_clock(host, mmc_sd_get_max_clock(card));
+
 		/*
 		 * Switch to wider bus (if supported).
 		 */
@@ -1134,7 +1135,7 @@ static int mmc_sd_resume(struct mmc_host *host)
 {
 	int err;
 #ifdef CONFIG_MMC_PARANOID_SD_INIT
-	int retries;
+	int retries, detect_retries;
 	int delayTime;
 #endif
 
@@ -1156,7 +1157,18 @@ static int mmc_sd_resume(struct mmc_host *host)
 			mmc_power_up(host);
 			retries--;
 			delayTime *= 2;
-			if (host->ops->get_cd && host->ops->get_cd(host) == 0) {
+			/* check if card still exists */
+			detect_retries = 3;
+			while(detect_retries) {
+				err = _mmc_detect_card_removed(host);
+				if (err) {
+					detect_retries--;
+					udelay(5);
+					continue;
+				}
+				break;
+			}
+			if (!detect_retries) {
 				printk(KERN_ERR "%s(%s): find no card (%d). Stop trying\n",
 				__func__, mmc_hostname(host), err);
 				break;

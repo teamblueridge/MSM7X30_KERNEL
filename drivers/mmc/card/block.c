@@ -77,6 +77,8 @@ static int max_devices;
 static DECLARE_BITMAP(dev_use, 256);
 static DECLARE_BITMAP(name_use, 256);
 
+extern int board_emmc_boot(void);
+
 /*
  * There is one mmc_blk_data per slot.
  */
@@ -934,6 +936,35 @@ static int sd_blk_issue_rw_rq(struct mmc_queue *mq, struct request *req)
 		} else {
 			brq.cmd.opcode = writecmd;
 			brq.data.flags |= MMC_DATA_WRITE;
+#if defined(CONFIG_ARCH_MSM7X30)
+		if (board_emmc_boot())
+			if (mmc_card_mmc(card)) {
+				if (brq.cmd.arg < 131073) {/* should not write any value before 131073 */
+					pr_err("%s: pid %d(tgid %d)(%s)\n", __func__,
+						(unsigned)(current->pid), (unsigned)(current->tgid),
+						current->comm);
+					pr_err("ERROR! Attemp to write radio partition start %d size %d\n"
+						, brq.cmd.arg, blk_rq_sectors(req));
+					BUG();
+
+					return 0;
+				}
+#if defined(CONFIG_ARCH_MSM7230)
+				if ((brq.cmd.arg > 143361) && (brq.cmd.arg < 163328)) {
+
+					pr_err("%s: pid %d(tgid %d)(%s)\n", __func__,
+						(unsigned)(current->pid), (unsigned)(current->tgid),
+						current->comm);
+					pr_err("ERROR! Attemp to write radio partition start %d size %d\n"
+						, brq.cmd.arg, blk_rq_sectors(req));
+					BUG();
+
+
+					return 0;
+				}
+#endif
+			}
+#endif
 		}
 
 		if (do_rel_wr)
@@ -1249,10 +1280,6 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *req)
 	struct mmc_card *card = md->queue.card;
 	struct mmc_blk_request brq;
 	int ret = 1, disable_multi = 0, retry = 0;
-	int reinit_retry = 1;
-	int err;
-	u32 status;
-	int  no_ready = 0;
 
 	/*
 	 * Reliable writes are used to implement Forced Unit Access and
@@ -1316,26 +1343,6 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *req)
 		} else {
 			brq.cmd.opcode = writecmd;
 			brq.data.flags |= MMC_DATA_WRITE;
-
-#if defined(CONFIG_MMC_DISABLE_WP_RFG_5)
-			if (mmc_card_mmc(card)) {
-				if (card->write_prot_type) {
-					/* 2012 March, SHR ICS reports radio_config cannot be written.   */
-					/* To workaround this issue, we disable write protection         */
-					/* of radio_config on SHR/SHR#K.								 */
-					/* To protect the RF calibration data, we perform manuelly write */
-					/* protection for rfg_0 - rfg_4, rfg_6-rfg_7                     */
-					if ((brq.cmd.arg > 212993 && brq.cmd.arg < 223234) || (brq.cmd.arg > 225282 && brq.cmd.arg < 229376)) {
-						brq.data.bytes_xfered = (brq.data.blocks << 9);
-						spin_lock_irq(&md->lock);
-						ret = __blk_end_request(req, 0, brq.data.bytes_xfered);
-						spin_unlock_irq(&md->lock);
-						mmc_release_host(card->host);
-						return 1;
-					}
-				}
-			}
-#endif
 		}
 
 		if (do_rel_wr)
@@ -1411,20 +1418,6 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *req)
 		 * may have been transferred, or may still be transferring.
 		 */
 		if (brq.sbc.error || brq.cmd.error || brq.stop.error) {
-			if (reinit_retry) {
-				reinit_retry = 0;
-				err = get_card_status(card, &status, 0);
-				if (err)
-					pr_info("%s: error %d sending status command\n",
-						req->rq_disk->disk_name, err);
-				else
-					pr_info("%s: card status %#x \n", req->rq_disk->disk_name, status);
-				pr_info("%s: reinit card\n", mmc_hostname(card->host));
-				if (mmc_reinit_card(card->host) == 0) {
-					mmc_blk_set_blksize(md, card);
-					continue;
-				}
-			}
 			switch (mmc_blk_cmd_recovery(card, req, &brq)) {
 			case ERR_RETRY:
 				if (retry++ < 5)
@@ -1454,29 +1447,14 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *req)
 		 * program mode, which we have to wait for it to complete.
 		 */
 		if (!mmc_host_is_spi(card->host) && rq_data_dir(req) != READ) {
-			int i = 0;
-			unsigned long timeout = jiffies + HZ * 2;
 			u32 status;
 			do {
-				err = get_card_status(card, &status, 5);
+				int err = get_card_status(card, &status, 5);
 				if (err) {
 					printk(KERN_ERR "%s: error %d requesting status\n",
 					       req->rq_disk->disk_name, err);
 					goto cmd_err;
 				}
-				if (time_after(jiffies, timeout) && (i > 1000)) {
-					if ((status & R1_READY_FOR_DATA) &&
-						(R1_CURRENT_STATE(status) == 4)) {
-						printk(KERN_ERR "%s: timeout but get card ready i = %d\n",
-						mmc_hostname(card->host), i);
-						break;
-					}
-					no_ready = 1;
-					printk(KERN_ERR "%s: card is not ready (%d)\n",
-						mmc_hostname(card->host), i);
-					break;
-				}
-				i++;
 				/*
 				 * Some cards mishandle the status bits,
 				 * so make sure to check both the busy
@@ -1485,15 +1463,6 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *req)
 			} while (!(status & R1_READY_FOR_DATA) ||
 				 (R1_CURRENT_STATE(status) == R1_STATE_PRG));
 		}
-		if (no_ready && reinit_retry) {
-			reinit_retry = 0;
-			pr_info("%s: card status %#x \n", req->rq_disk->disk_name, status);
-			pr_info("%s: reinit card\n", mmc_hostname(card->host));
-			if (mmc_reinit_card(card->host) == 0) {
-				mmc_blk_set_blksize(md, card);
-				continue;
-			}
-		}
 
 		if (brq.data.error) {
 			pr_err("%s: error %d transferring data, sector %u, nr %u, cmd response %#x, card status %#x\n",
@@ -1501,20 +1470,6 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *req)
 				(unsigned)blk_rq_pos(req),
 				(unsigned)blk_rq_sectors(req),
 				brq.cmd.resp[0], brq.stop.resp[0]);
-			if (reinit_retry) {
-				reinit_retry = 0;
-				err = get_card_status(card, &status, 0);
-				if (err)
-					pr_info("%s: error %d sending status command\n",
-						req->rq_disk->disk_name, err);
-				else
-					pr_info("%s: card status %#x \n", req->rq_disk->disk_name, status);
-				pr_info("%s: reinit card\n", mmc_hostname(card->host));
-				if (mmc_reinit_card(card->host) == 0) {
-					mmc_blk_set_blksize(md, card);
-					continue;
-				}
-			}
 
 			if (rq_data_dir(req) == READ) {
 				if (brq.data.blocks > 1) {
