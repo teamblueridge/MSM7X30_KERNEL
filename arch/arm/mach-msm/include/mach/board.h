@@ -445,6 +445,8 @@ enum msm_mdp_hw_revision {
 	MDP_REV_40,
 	MDP_REV_41,
 	MDP_REV_42,
+	MDP_REV_43,
+	MDP_REV_44,
 };
 
 struct msm_panel_common_pdata {
@@ -464,7 +466,9 @@ struct msm_panel_common_pdata {
 #ifdef CONFIG_MSM_BUS_SCALING
 	struct msm_bus_scale_pdata *mdp_bus_scale_table;
 #endif
+	char cont_splash_enabled;
 	int mdp_rev;
+	u32 mdp_max_cl
 	u32 ov0_wb_size;  /* overlay0 writeback size */
 	u32 ov1_wb_size;  /* overlay1 writeback size */
 	u32 mem_hid;
@@ -540,14 +544,14 @@ struct mipi_dsi_panel_platform_data {
 	struct mipi_dsi_phy_ctrl *phy_ctrl_settings;
 };
 
+#define PANEL_NAME_MAX_LEN 50
 struct msm_fb_platform_data {
 	int (*detect_client)(const char *name);
-	int mddi_prescan;
-	int (*allow_set_offset)(void);
-	int blt_mode;
-	uint32_t width;
-	uint32_t height;
-	bool     is_3d_panel;
+        int mddi_prescan;
+        int (*allow_set_offset)(void);
+        bool     is_3d_panel;
+        char prim_panel_name[PANEL_NAME_MAX_LEN];
+        char ext_panel_name[PANEL_NAME_MAX_LEN];
 };
 
 #ifdef CONFIG_FB_MSM8960
