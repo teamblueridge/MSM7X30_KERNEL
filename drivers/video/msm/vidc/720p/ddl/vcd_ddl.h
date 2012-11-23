@@ -67,11 +67,9 @@
 
 #define DDL_DEC_REQ_OUTPUT_FLUSH                0x1
 
-#ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
 enum ddl_mem_area {
 	DDL_MM_MEM	= 0x0
 };
-#endif
 
 struct ddl_buf_addr {
 	u32 *physical_base_addr;
@@ -80,9 +78,7 @@ struct ddl_buf_addr {
 	u32 *align_virtual_addr;
 	struct msm_mapped_buffer *mapped_buffer;
 	u32 buffer_size;
-#ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
 	enum ddl_mem_area mem_type;
-#endif
 };
 
 enum ddl_cmd_state {
